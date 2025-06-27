@@ -52,6 +52,8 @@ loader.info('load and pasered')
 
 
 
+
+
 import fitz 
 
 def extract_with_fitz(_, path):
@@ -61,6 +63,8 @@ def extract_with_fitz(_, path):
     for page in doc:
         texts.append(page.get_text("text"))
     return texts
+
+
 
 
 if __name__ == "__main__":
