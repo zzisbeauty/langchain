@@ -32,7 +32,12 @@ share/python-wheels/
 MANIFEST
 
 
+# server log files
 /loggers_dir
+gunicorn.log
+
+
+
 
 # Google GitHub Actions credentials files created by:
 # https://github.com/google-github-actions/auth

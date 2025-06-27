@@ -23,7 +23,7 @@ if OS_NAME == "Windows":
 elif OS_NAME == "Linux":
     sys.path.append('/home/langchain-core-0.3.64')
     # LOAD ENV CONFIG AND SETTINGS
-    load_dotenv('/home/langchain-core-0.3.64/cdify/.env')
+    load_dotenv('/home/langchain/cdify/.env')
     ...
     # print("Linux")
 else:

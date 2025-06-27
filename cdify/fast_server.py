@@ -3,8 +3,10 @@ import sys
 import json, requests
 from flask import Flask, request, jsonify
 
-# sys.path.append("/home/langchain-core-0.3.64")
+# windows
 sys.path.append(r"E:\langchain-core-0.3.64")
+# linux
+sys.path.append('/home/langchain')
 project_root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 if project_root not in sys.path:
     sys.path.append(project_root)
@@ -381,8 +383,8 @@ def insert_txt2db():
     
     # test parameters
     # json_data['dataset_id'] = 'd6142a1d-ff1b-470c-84b8-9b6f570f95d9' # test
-    file_name = "鲁迅杂文-《且介亭杂文》-long-16-58", # test
-    text = text_demo_long  # test
+    # file_name = "鲁迅杂文-《且介亭杂文》-long-16-58", # test
+    # text = text_demo_long  # test
 
     if not file_name or not text or not dataset_id:
         return {'status_code': -1, 'data': "当前【文件名】【文本信息】【数据库ID】存在空，请检查", 'info': '当前【文件名】【文本信息】【数据库ID】存在空，请检查性'}
@@ -787,7 +789,7 @@ def start_chat():
     # params check
     user_id = json_data.get('user_id', '') # hanwei-cdify
     if not user_id:
-        return {'status_code': -1, 'info': 'No user_id provided', 'data': "No user_id provided",}
+        return {'status_code': -1, 'info': 'No user_id provided', 'data': "",}
     
     conversation_id = json_data.get('conversation_id','')
     # todo 这里需要新增对话轮次的判断，保证 conversation id 的信息是有效的
@@ -825,6 +827,26 @@ def start_chat():
     }
 
 
+@timed_request
+@app.route(BASE_URL + '/docProcess', methods=['POST'])
+def start_chat():
+    data = request.get_data()
+    json_data = json.loads(data.decode("utf-8"))
+    dataset_id = json_data.get('dataset_id', '')
+    batch = json.get('batch', '')
+    
+    from cdify.api.dbs.doc_actions import docProcess
+    response = docProcess(dataset_id, batch)
+    
+    if not dataset_id or not batch:
+        return {'status_code': -1, 'info': 'No user_id or batch provided', 'data': "",}
+    else:
+        return {
+            'status_code': 0,
+            'data': json.loads(response.text),
+            'info': 'request chat info successful!'
+        }
+
 
 
 
@@ -833,5 +855,8 @@ def start_chat():
 if __name__ == '__main__':
     # logger.info("日志系统初始化成功！ Server Running...")
 
-    app.run(debug=True, host='0.0.0.0', port=5611)
-    # app.run(debug=True, host='0.0.0.0', port=2569)
+    # windows local
+    # app.run(debug=True, host='0.0.0.0', port=5611)
+
+    # servr docker
+    app.run(debug=True, host='0.0.0.0', port=5627)
