@@ -30,9 +30,9 @@ pdf_path = r'E:\其他文件\知识库接口逻辑梳理-无权限控制.pdf'
 # loader = PyPDFLoader(pdf_path)
 # loader = PDFPlumberLoader(pdf_path)
 # loader = UnstructuredPDFLoader(pdf_path, mode="elements") # × windows 无法运行，缺失且无法安装  pip install python-heif -i https://pypi.tuna.tsinghua.edu.cn/simple
-
-docs = loader.load()
-
+# docs = loader.load()
+# texts = [doc.page_content for doc in docs]
+# logger.info('load and pasered')
 """
 [
   Document(
@@ -46,26 +46,3 @@ docs = loader.load()
   ...
 ]
 """
-# text = docs[0].page_content if docs else "无内容"
-texts = [doc.page_content for doc in docs]
-loader.info('load and pasered')
-
-
-
-
-
-import fitz 
-
-def extract_with_fitz(_, path):
-    """ _ : 对比结果 """
-    doc = fitz.open(path)
-    texts = []
-    for page in doc:
-        texts.append(page.get_text("text"))
-    return texts
-
-
-
-
-if __name__ == "__main__":
-    texts = extract_with_fitz(texts_1, pdf_path)
