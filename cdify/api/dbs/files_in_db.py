@@ -13,9 +13,15 @@ from cdify.tools import *
 
 
 
-def edit_db(dataset_id, data):
-    url = SERVER_BASE_URL + f"/datasets/{dataset_id}"
-    response = requests.patch(url, headers=db_hearders, json=data)
+
+
+
+def requests_dataset_files_url(dataset_id, document_id):
+    url = SERVER_BASE_URL + f"/datasets/{dataset_id}/documents/{document_id}/upload-file"
+    response = requests.get(url, headers=db_hearders)
     print("状态码:", response.status_code)
     print("响应内容:", response.text)
-    return response
+    try:
+        return response.text # 防止请求超时等意外错误
+    except:
+        return ''

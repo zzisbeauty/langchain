@@ -86,7 +86,7 @@ if OS_NAME == "Windows":
 	with open(r'E:\其他文件\长文-2.txt','r',encoding='utf-8') as f:
 		text_demo_long = f.read()
 if OS_NAME == 'Linux':
-	with open('/home/langchain/cdify/docs/长文-2.txt','r',encoding='utf-8') as f:
+	with open('/home/langchain/cdify/test_unit/docs-data-api-test/长文-2.txt','r',encoding='utf-8') as f:
 		text_demo_long = f.read()
 
 

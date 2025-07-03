@@ -17,9 +17,6 @@ loglevel = "info"
 # 启动后检查进程 ps -ef | grep gunicorn
 # kill pid 停止服务 or  pkill gunicorn
 
-
-
-
 # 高阶管理 gunicorn pid 方案
 # nohup gunicorn -w 4 -b 0.0.0.0:5627 fast_server:app --pid gunicorn.pid > gunicorn.log 2>&1 &
 # 杀死进程 kill $(cat gunicorn.pid)

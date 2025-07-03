@@ -1,11 +1,142 @@
-### 服务启动
+## 基础说明
 
-- 首先启动容器：lc_dify_api; 
-- 进入终端，项目运行 env 会被自动激活
-- cd /home/langchain/cdify
-- 阻塞终端start server: gunicorn fast_server:app -c gunicorn.conf.py (阻塞终端的方式启动服务，关闭终端，服务会停止)
-- 非阻塞终端start server： ... 
-- 启动后可以快速执行下方健康检查接口，确认服务被正常启动
+### 服务信息
+
+1.Hanwei-.10.0..15.21server
+2.Docker lc_dify_api；docker exec -it 启动并进入容器
+3.进入容器后，代码运行环境自动被激活，无需做额外的环境配置
+4.cd /home/langchain/cdify
+5.阻塞终端启动服务：gunicorn fast_server:app -c gunicorn.conf.py
+6.非阻塞终端启动服务（后台启动服务）待补充
+7.可以随时添加worker提升服务并发能力
+
+
+### 服务路由构成
+
+- http://10.0.15.21:5627
+
+
+### 健康检查
+
+- http://10.0.15.21:5627/hanwei/hello
+
+```json
+{
+    "data": "",
+    "info": "Healthy check successful!",
+    "status_code": 0
+}
+```
+
+
+### 模型返回值的基础结构说明
+
+参考如上健康检查接口，response 为 dict，会包含三个字段：
+1. data : 如有需要解析的数据，存储在此字段，否则为空
+2. info : 记录请求成功或者失败的一些必要介绍说明，方便定位问题
+3. status_code: 只有 0 和 -1 两种值，0代表成功，-1 代表失败。
+   当 -1 时，info 中记录的信息是有价值的，否则 info 的信息可以不怎么关注
+
+
+
+## DATABASE（知识库）操作API 清单
+
+### ① 获取所有知识库
+
+- GET http://10.0.15.21:5627/hanwei/dbList
+
+- params
+
+```json
+{
+  page :  默认为1; 分页吗
+  limit :  默认为 100；每页限制数量
+  keyword : 默认为 ""， 查询关键字
+}
+```
+
+- response
+
+```
+{
+	"data": [
+		{
+			"app_count": 0,
+			"built_in_field_enabled": false,
+			"created_at": 1751357390,
+			"created_by": "c85ba575-0a9f-4c7c-bc1b-95dc6810efaf",
+			"data_source_type": "upload_file",
+			"description": "测试创建DB - API",
+			"doc_form": "text_model",
+			"doc_metadata": [],
+			"document_count": 5,
+			"embedding_available": true,
+			"embedding_model": "bge-m3:latest",
+			"embedding_model_provider": "langgenius/ollama/ollama",
+			"external_knowledge_info": {
+				"external_knowledge_api_endpoint": null,
+				"external_knowledge_api_id": null,
+				"external_knowledge_api_name": null,
+				"external_knowledge_id": null
+			},
+			"external_retrieval_model": {
+				"score_threshold": 0.75,
+				"score_threshold_enabled": false,
+				"top_k": 3
+			},
+			"id": "0d4b4b25-f149-4843-8084-a36307c92c92",
+			"indexing_technique": "high_quality",
+			"name": "test-db-16:09",
+			"permission": "only_me",
+			"provider": "vendor",
+			"retrieval_model_dict": {
+				"reranking_enable": false,
+				"reranking_mode": "weight_score",
+				"reranking_model": {
+					"reranking_model_name": "bge-reranker-base",
+					"reranking_provider_name": "xinference"
+				},
+				"score_threshold": 0.75,
+				"score_threshold_enabled": false,
+				"search_method": "hybrid_search",
+				"top_k": 3,
+				"weights": {
+					"keyword_setting": {
+						"keyword_weight": null
+					},
+					"vector_setting": {
+						"embedding_model_name": "bge-m3:latest",
+						"embedding_provider_name": "langgenius/ollama/ollama",
+						"vector_weight": 0.8
+					},
+					"weight_type": null
+				}
+			},
+			"tags": [],
+			"updated_at": 1751357390,
+			"updated_by": "c85ba575-0a9f-4c7c-bc1b-95dc6810efaf",
+			"word_count": 2519
+		}
+	],
+	"info": "Query db list successful!",
+	"status_code": 0
+}
+```
+
+
+
+
+
+
+# ================================
+
+
+
+
+
+
+
+
 
 
 
@@ -102,7 +233,6 @@ keyword: 可不传，默认为空
 - get http://10.30.30.97:5611/hanwei/dbInfo?dataset_id=d6142a1d-ff1b-470c-84b8-9b6f570f95d9
 - params： dataset_id  # 必填
 - return： 具体返回结合实际返回情况处理，因为字段很多，记录影响文档清晰程度，这里不做单独记录
-
 
 #### 创建知识库
 

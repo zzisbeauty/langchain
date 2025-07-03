@@ -85,9 +85,8 @@ def get_db_doc_list(dataset_id):
 def get_db_doc_paragraphs_list(dataset_id, doc_id):
     url = SERVER_BASE_URL + f'/datasets/{dataset_id}/documents/{doc_id}/segments'
     response = requests.get(url, headers=db_hearders)
-    print("状态码:", response.status_code)
-    # print("响应内容:", response.text)
-    print(json.loads(response.text))
+    # print("状态码:", response.status_code)
+    # print("响应内容:", json.loads(response.text))
     return response
 
 

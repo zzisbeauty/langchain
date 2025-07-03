@@ -18,14 +18,11 @@ def upload_file_with_metadata(db_id, file_name, file_path, data_json):
 
     # 构造 multipart/form-data 请求
     files = {
-        # 'data': (None, json.dumps(data_json), 'application/json'),
-        # 'file': (file_name, open(file_path, 'rb'), 'text/plain')
-
         'data': (None, data_json, 'application/json'),
         'file': open(file_path, 'rb')
     }
 
     response = requests.post(url, headers=db_hearders_upload_files, files=files)
-    # print('Status Code:', response.status_code)
-    # print('Response:', response.text)
+    print('Status Code:', response.status_code)
+    print('Response:', response.text)
     return response

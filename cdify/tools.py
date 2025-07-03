@@ -37,8 +37,9 @@ database_key = os.getenv("DATABASE_KEY")
 
 
 # CONFIG SETTINGS
-BASE_URL = '/hanwei'
-SERVER_BASE_URL = 'http://10.0.15.21/v1'
+# BASE_URL = '/hanwei'
+BASE_URL = '/hanwei/v1'
+SERVER_BASE_URL = 'http://10.0.15.21/v1' # dify server api
 
 
 # ollama embedding model config

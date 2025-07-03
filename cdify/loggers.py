@@ -39,7 +39,7 @@ def get_logger(name, system_name='Linux', domain_service='task_name', log_dir=No
     # 日志目录默认为项目根目录下 loggers_dir/
     if log_dir is None:
         base_dir = os.path.dirname(os.path.abspath(__file__))
-        log_dir = os.path.join(base_dir, 'loggers_dir')
+        log_dir = os.path.join(base_dir, 'loggers')
     os.makedirs(log_dir, exist_ok=True)
 
     logger = CustomLogger(name, system_name, domain_service)
