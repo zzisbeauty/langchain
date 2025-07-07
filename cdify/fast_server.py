@@ -26,12 +26,12 @@ def healthy_check():
     response = say_hello()
     if response.status_code != 200: # info == 错误信息说明
         return {
-            'status_code': -1, 'data': "", 'info': 'Healthy check failed!',
+            'code': -1, 'data': "", 'message': 'Healthy check failed!',
         }
     return {
-        'status_code': 0, 
+        'code': 0, 
         'data': '',  
-        'info': 'Healthy check successful!'
+        'message': 'Healthy check successful!'
     }
 
 
@@ -46,11 +46,9 @@ def request_db_list():
     keyword = param.get('keywords','')
     # tag_ids = param.get('tag_ids')
 
-    # -------- 开始业务逻辑 ------------
-
     # parameters  check
     # if tag_ids and not isinstance(tag_ids, list):
-    #     return {'status_code': -1, 'data': "Parameter must be array[string]", 'info': 'Parameter must be array[string]',}
+    #     return {'code': -1, 'data': "Parameter must be array[string]", 'message': 'Parameter must be array[string]',}
 
     # logger.info("====================================== query db list log")
     from cdify.api.dbs.db_list import requests_datasets_list
@@ -63,17 +61,20 @@ def request_db_list():
 
     if not response: # info == 错误信息说明
         return {
-            'status_code': -1, 'data': "", 
-            'info': 'Query db list failed! 可能是网络超时等非程序错误导致的异常，可以从服务器网络服务检查入手',
+            'code': -1, 'data': "", 
+            'message': 'Query db list failed! 可能是网络超时等非程序错误导致的异常，可以从服务器网络服务检查入手',
         }
     temp_return = {
-        'status_code': 0,
+        'code': 0,
         'data': response,
-        'info': 'Query db list successful!'
+        'message': 'Query db list successful!'
     }
     # return temp_return
-    from cdify.fast_response_data_clean import wrap_dataset_info_response
-    return wrap_dataset_info_response(temp_return)
+    # from cdify.fast_response_data_clean import wrap_dataset_info_response
+    # return wrap_dataset_info_response(temp_return)
+
+    from cdify.fast_response_data_clean import convert_dify_response_to_ragflow_format
+    return convert_dify_response_to_ragflow_format(temp_return)
 
 
 
@@ -84,13 +85,10 @@ def request_db_info_with_dbid():
     param = request.args.to_dict()
     dataset_id = param.get('kb_id','')
     
-    # 我的 params
-    # param = request.args.to_dict()
-    # dataset_id = param.get('dataset_id','')
-
     if not dataset_id:
         return {
-            'status_code': -1, 'data': "", 'info': '请提供要查询的 dataset_id',
+            'code': -1, 'data': "", 
+            'message': '请提供要查询的 dataset_id',
         }
 
     from cdify.api.dbs.db_list import request_dbinfo
@@ -98,21 +96,26 @@ def request_db_info_with_dbid():
 
     if not response: # info == 错误信息说明
         return {
-            'status_code': -1, 'data': "", 
-            'info': 'Query db info with dataset id failed! 可能是网络超时等非程序导致的错误，请注意检查',
+            'code': -1, 'data': "", 
+            'message': 'Query db info with dataset id failed! 可能是网络超时等非程序导致的错误，请注意检查',
         }
     temp_return = {
-        'status_code': 0, 
-        'data': response, 
-        'info': 'Query db info with dataset id successful!'
+        'code': 0, 'data': response, 
+        'message': 'Query db info with dataset id successful!'
     }
+
     # return temp_return
-    from cdify.fast_response_data_clean import wrap_dataset_info_response
-    return wrap_dataset_info_response(temp_return)
+    # from cdify.fast_response_data_clean import wrap_dataset_info_response
+    # return wrap_dataset_info_response(temp_return)
+
+    from cdify.fast_response_data_clean import convert_dify_detail_response_to_ragflow_format
+    return convert_dify_detail_response_to_ragflow_format(temp_return)
+
 
 
 
 # ======================================================== 知识库创建与编辑核心方法 ===========================================================================
+
 
 
 

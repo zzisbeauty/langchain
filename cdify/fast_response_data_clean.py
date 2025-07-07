@@ -230,40 +230,14 @@ def wrap_create_db_response(original_response: dict) -> dict:
 
 
 
-#  api dbList \ dbInfo 
-# def wrap_db_list_response(resp: dict) -> dict:
-#     """
-#     处理“查询DB列表”的接口响应，只保留最关键信息
-#     """
-#     raw_list = resp.get("data", [])
-#     new_list = []
 
-#     for db in raw_list:
-#         retrieval_model = db.get("retrieval_model_dict", {})
-#         new_list.append({
-#             "id": db.get("id"),
-#             "name": db.get("name"),
-#             "description": db.get("description"),
-#             "document_count": db.get("document_count"),
-#             "word_count": db.get("word_count"),
-#             "embedding_model": db.get("embedding_model"),
-#             "indexing_technique": db.get("indexing_technique"),
-#             "retrieval_model": {
-#                 "search_method": retrieval_model.get("search_method"),
-#                 "top_k": retrieval_model.get("top_k"),
-#                 "score_threshold_enabled": retrieval_model.get("score_threshold_enabled"),
-#                 "score_threshold": retrieval_model.get("score_threshold"),
-#             }
-#         })
 
-#     # 替换掉原来的 data
-#     resp["data"] = new_list
-#     return resp
-
-def wrap_dataset_info_response(response: dict) -> dict:
+# =========================================================
     """
     统一处理知识库详情或列表响应，只保留关键字段。
     """
+# =========================================================
+def wrap_dataset_info_response(response: dict) -> dict:
     essential_keys = [
         "id", "name", "description", "doc_form", "data_source_type",
         "document_count", "word_count", "created_by", "created_at",
@@ -288,6 +262,83 @@ def wrap_dataset_info_response(response: dict) -> dict:
         "status_code": response.get("status_code", -1),
         "info": response.get("info", ""),
         "data": filtered_data
+    }
+
+
+def convert_dify_response_to_ragflow_format(dify_response: dict) -> dict:
+    def convert_item(item: dict) -> dict:
+        # 组装 embd_id
+        embd_id = f"{item.get('embedding_model', '')}@{item.get('embedding_model_provider', '')}"
+        return {
+            "avatar": "",
+            "chunk_num": 0,  # dify 无 chunk 字段，可设置为 0 或估算
+            "description": item.get("description", ""),
+            "doc_num": item.get("document_count", 0),
+            "embd_id": embd_id,
+            "id": item.get("id", ""),
+            "language": "Chinese",  # dify 无语言字段，默认填一个
+            "name": item.get("name", ""),
+            "parser_id": "naive",  # dify 无 parser 字段，默认填一个
+            "permission": item.get("permission", "only_me"),
+            "token_num": item.get("word_count", 0),  # 直接使用 word_count 近似 token
+            "update_time": item.get("updated_at", 0)
+        }
+
+    ragflow_kbs = [convert_item(item) for item in dify_response.get("data", [])]
+    return {
+        "code": 0,
+        "data": {
+            "kbs": ragflow_kbs,
+            "total": len(ragflow_kbs)
+        },
+        "message": "success"
+    }
+
+
+
+# =========================================================
+    """
+    查询知识库详情信息
+    """
+# =========================================================
+
+def convert_dify_detail_response_to_ragflow_format(dify_response: dict) -> dict:
+    DEFAULT_PARSER_CONFIG = {
+        "graphrag": {
+            "community": True,
+            "entity_types": [],
+            "method": "",
+            "resolution": True,
+            "use_graphrag": True
+        },
+        "layout_recognize": ""
+    }
+
+    dify_data = dify_response.get("data", {})
+    embd_id = f"{dify_data.get('embedding_model', '')}@{dify_data.get('embedding_model_provider', '')}"
+
+    ragflow_data = {
+        "auth_list": [],
+        "avatar": "",
+        "chunk_num": 0,
+        "description": dify_data.get("description", ""),
+        "doc_num": dify_data.get("document_count", 0),
+        "embd_id": embd_id,
+        "id": dify_data.get("id", ""),
+        "language": "Chinese",
+        "manager_list": [],
+        "name": dify_data.get("name", ""),
+        "pagerank": 0,
+        "parser_config": DEFAULT_PARSER_CONFIG,
+        "parser_id": "naive",
+        "permission": dify_data.get("permission", "only_me"),
+        "token_num": dify_data.get("word_count", 0)
+    }
+
+    return {
+        "code": 0,
+        "data": ragflow_data,
+        "message": "success"
     }
 
 
