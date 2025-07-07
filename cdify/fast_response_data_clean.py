@@ -78,52 +78,87 @@ def filter_insert_response(response: dict) -> dict:
 
 
 
-# 适配 API getDbDocParasList
-def transform_response_data(response: dict) -> dict:
-    new_response = response.copy()
-    data = response.get("data")
-    if not data:
-        # data 为空或 None，直接返回原结构
-        return new_response
-    new_data = {}
-    for key, val in data.items():
-        # val 应该是一个列表，里面元素是三元组列表
-        if not isinstance(val, list):
-            new_data[key] = val
-            continue
-
-        converted_list = []
-        for item in val:
-            if isinstance(item, list) and len(item) == 3:
-                content, keywords, para_id = item
-                converted_list.append({
-                    "content": content,
-                    "keywords": keywords,
-                    "para_id": para_id
-                })
-        new_data[key] = converted_list
-
-    new_response["data"] = new_data
-    return new_response
 
 
 
+# =========================================================
+    """
+    api: 适配 API getDbDocParasListnsertTypeFile2DB
+    """
+# =========================================================
+def convert_dify_to_ragflow_structure4(dify_list, keywords=None, message="success"):
+    """
+    将 Dify 的段落列表格式转换为 Ragflow 风格返回。
+    - keywords 可以是 str 或 list
+    - 如果 keywords 为空或 None，不做过滤，返回所有段落
+    - question_kwd 字段始终是空列表
+    """
+    # 统一 keywords 参数为列表
+    if keywords is None:
+        keywords_list = []
+    elif isinstance(keywords, str):
+        keywords_list = [keywords.strip()] if keywords.strip() else []
+    elif isinstance(keywords, list):
+        keywords_list = [kw.strip() for kw in keywords if kw.strip()]
+    else:
+        keywords_list = []
+
+    chunks = []
+    for item in dify_list:
+        item_keywords = item.get("keywords", [])
+
+        # 如果用户真的传了非空关键字过滤条件，就只保留命中的
+        if keywords_list:
+            if not any(kw in item_keywords for kw in keywords_list):
+                continue
+
+        # 拼接 content 和 answer
+        content = item.get("content", "")
+        answer = item.get("answer", "")
+        content_with_weight = f"{content}\n{answer}" if answer else content
+
+        # 构造 ragflow 风格的 chunk
+        chunk = {
+            "available_int": 1,
+            "chunk_id": item.get("id", ""),
+            "content_with_weight": content_with_weight,
+            "doc_id": item.get("document_id", ""),
+            "docnm_kwd": "",
+            "image_id": "",
+            "important_kwd": item_keywords,
+            "positions": [],
+            "question_kwd": []   # 一定为空
+        }
+        chunks.append(chunk)
+
+    # 返回 ragflow 风格完整结构
+    result = {
+        "code": 0,
+        "data": {
+            "chunks": chunks,
+            "doc": {},
+            "total": len(chunks)
+        },
+        "message": message
+    }
+    return result
 
 
-# api insertTypeFile2DB
-
+# =========================================================
+    """
+    api insertTypeFile2DB
+    """
+# =========================================================
 import json
 
 def wrap_insert_file_response(original_response: dict) -> dict:
     """
-    接收整个原始响应，保留 info 和 status_code，
-    只替换处理过的 data 字段
+    接收整个原始响应，保留 info 和 status_code， 只替换处理过的 data 字段
     """
     raw_data_str = original_response.get("data")
     if not raw_data_str:
         # 没有 data 字段，就原样返回
         return original_response
-
     try:
         # 转义字符串反序列化
         parsed_data = json.loads(raw_data_str)
@@ -153,7 +188,117 @@ def wrap_insert_file_response(original_response: dict) -> dict:
     }
 
 
-# api insertText2DB
+import json
+
+def convert_dify_upload_response_to_ragflow_format(dify_response: dict) -> dict:
+    DEFAULT_PARSER_CONFIG = {
+        "pages": [[]]
+    }
+
+    # dify 的 data 是字符串
+    dify_data_raw = dify_response.get("data", "{}")
+    dify_data = json.loads(dify_data_raw)
+
+    doc = dify_data.get("document", {})
+    data_source_info = doc.get("data_source_info", {})
+    data_source_detail = doc.get("data_source_detail_dict", {}).get("upload_file", {})
+
+    ragflow_item = {
+        "created_by": doc.get("created_by", ""),
+        "id": doc.get("id", ""),
+        "kb_id": data_source_info.get("upload_file_id", ""),
+        "location": "",
+        "name": doc.get("name", ""),
+        "parser_config": DEFAULT_PARSER_CONFIG,
+        "parser_id": "naive",
+        "size": data_source_detail.get("size", 0),
+        "thumbnail": "",
+        "type": data_source_detail.get("extension", "")
+    }
+
+    return {
+        "code": 0,
+        "data": [ragflow_item],
+        "message": "success"
+    }
+
+
+
+
+
+
+# =========================================================
+    """
+    api 获取 document list
+    """
+# =========================================================
+def convert_dify_doc_list_response_to_ragflow_format(dify_response: dict) -> dict:
+    DEFAULT_PARSER_CONFIG = {
+        "pages": [None]
+    }
+
+    docs = []
+    dify_data = dify_response.get("data", {})
+
+    for kb_id, doc_list in dify_data.items():
+        for item in doc_list:
+            for doc_id, doc_info in item.items():
+                name, doc_form = doc_info
+                doc = {
+                    "chunk_num": 0,
+                    "create_date": "",
+                    "create_time": 0,
+                    "created_by": "",
+                    "id": doc_id,
+                    "kb_id": kb_id,
+                    "location": "",
+                    "meta_fields": {},
+                    "name": name,
+                    "parser_config": DEFAULT_PARSER_CONFIG,
+                    "parser_id": "naive",
+                    "process_begin_at": None,
+                    "process_duation": 0,
+                    "progress": 0,
+                    "progress_msg": "",
+                    "run": "",
+                    "size": 0,
+                    "source_type": "",
+                    "status": "",
+                    "thumbnail": "",
+                    "token_num": 0,
+                    "type": doc_form,
+                    "update_date": "",
+                    "update_time": 0
+                }
+                docs.append(doc)
+
+    return {
+        "code": 0,
+        "data": {
+            "docs": docs,
+            "total": len(docs)
+        },
+        "message": "success"
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+# =========================================================
+    """
+    api insertText2DB
+    """
+# =========================================================
 def wrap_insert_text_response(original_response: dict) -> dict:
     """
     接收整个原始响应，保留 info 和 status_code，
@@ -195,7 +340,12 @@ def wrap_insert_text_response(original_response: dict) -> dict:
 
 
 
-# api createDb
+
+# =========================================================
+    """
+    api createDb
+    """
+# =========================================================
 def wrap_create_db_response(original_response: dict) -> dict:
     """
     创建知识库接口响应包装器
@@ -227,6 +377,8 @@ def wrap_create_db_response(original_response: dict) -> dict:
     new_response = original_response.copy()
     new_response["data"] = filtered_data
     return new_response
+
+
 
 
 
@@ -296,6 +448,9 @@ def convert_dify_response_to_ragflow_format(dify_response: dict) -> dict:
 
 
 
+
+
+
 # =========================================================
     """
     查询知识库详情信息
@@ -344,6 +499,14 @@ def convert_dify_detail_response_to_ragflow_format(dify_response: dict) -> dict:
 
 
 
+
+
+
+# =========================================================
+    """
+    编辑知识库详情信息
+    """
+# =========================================================
 # api editDbProperty
 def wrap_edit_db_response(resp: dict) -> dict:
     """
@@ -377,7 +540,77 @@ def wrap_edit_db_response(resp: dict) -> dict:
 
 
 
-# api  dbRetrieval
+import json
+
+def convert_dify_update_response_to_ragflow_format(dify_response: dict) -> dict:
+    DEFAULT_PARSER_CONFIG = {
+        "auto_keywords": 0,
+        "auto_questions": 0,
+        "graphrag": {
+            "entity_types": [],
+            "method": "",
+            "resolution": True,
+            "use_graphrag": True
+        },
+        "layout_recognize": "",
+        "raptor": {
+            "use_raptor": True
+        }
+    }
+
+    # dify 返回里的 data 是一个 JSON string
+    dify_data_raw = dify_response.get("data", "{}")
+    dify_data = json.loads(dify_data_raw)
+
+    # 拼接 embd_id
+    embd_id = f"{dify_data.get('embedding_model', '')}@{dify_data.get('embedding_model_provider', '')}"
+
+    # 取 retrieval_model_dict 的深层字段
+    retrieval_model = dify_data.get("retrieval_model_dict", {})
+    score_threshold = retrieval_model.get("score_threshold", 0)
+    weights = retrieval_model.get("weights", {})
+    vector_setting = weights.get("vector_setting", {})
+    vector_weight = vector_setting.get("vector_weight", 0)
+
+    # 构建 ragflow 的 data 部分
+    ragflow_data = {
+        "avatar": "",
+        "chunk_num": 0,
+        "create_date": "",  # 可以根据 created_at 格式化，如果要
+        "create_time": dify_data.get("created_at", 0),
+        "created_by": dify_data.get("created_by", ""),
+        "description": dify_data.get("description", ""),
+        "doc_num": dify_data.get("document_count", 0),
+        "embd_id": embd_id,
+        "id": dify_data.get("id", ""),
+        "language": "Chinese",
+        "name": dify_data.get("name", ""),
+        "pagerank": 0,
+        "parser_config": DEFAULT_PARSER_CONFIG,
+        "parser_id": "naive",
+        "permission": dify_data.get("permission", "only_me"),
+        "similarity_threshold": score_threshold,
+        "status": "",
+        "tenant_id": "",
+        "token_num": dify_data.get("word_count", 0),
+        "update_date": "",
+        "update_time": dify_data.get("updated_at", 0),
+        "vector_similarity_weight": vector_weight
+    }
+    return {
+        "code": 0,
+        "data": ragflow_data,
+        "message": "success"
+    }
+
+
+
+# =========================================================
+    """
+    dbRetrieval
+    """
+# =========================================================
+
 def wrap_knowledge_search_response(response: dict) -> dict:
     """
     包装器：保留查询的 query 和每条命中记录的必要字段
@@ -416,7 +649,13 @@ def wrap_knowledge_search_response(response: dict) -> dict:
 
 
 
-# API docProcess
+
+
+# =========================================================
+    """
+    docProcess
+    """
+# =========================================================
 def wrap_check_text_processing_progress_response(resp: dict) -> dict:
     """
     包装器函数：处理「查询文本处理进度」接口响应

@@ -130,17 +130,16 @@ For further information visit https://errors.pydantic.dev/2.9/v/float_type
 def editRetrievalProperty():
     data = request.get_data()
     json_data = json.loads(data.decode("utf-8"))
-
     # parameters check
     # dataset_id = json_data.get('dataset_id','') # my prams
     dataset_id = json_data.get('kb_id','') # yjy params
     if not dataset_id:
-        return {'status_code': -1, 'data': "", 'info': f'请输入要编辑的知识库ID',}
+        return {'code': -1, 'data': "", 'message': f'请输入要编辑的知识库ID',}
 
     from cdify.api.dbs.db_list import requests_datasets_list
     already_dbs = requests_datasets_list() # db list
     if dataset_id not in [i['id'] for i in already_dbs]:
-        return {'status_code': -1, 'data': "", 'info': f'当前知识库ID {dataset_id} 不存在'}
+        return {'code': -1, 'data': "", 'message': f'当前知识库ID {dataset_id} 不存在'}
 
     # base params
     name = json_data.get('name', '')
@@ -149,9 +148,9 @@ def editRetrievalProperty():
     # database 属性编辑
     indexing_technique = json_data.get('indexing_technique','high_quality') # economy;
 
-    # embedding_available = True # 这个参数好像多余
+    # embedding_available = True # 这个参数多余
     embedding_provider_name = json_data.get('embedding_provider_name', embedding_model_provider_config) # my
-    embedding_model_name = json_data.get('embd_id', embedding_model_config)
+    embedding_model_name = json_data.get('embedding_model_name', embedding_model_config)
 
     # 基本检索参数编辑
     search_method = json_data.get('search_method', 'hybrid_search') # 默认混合检索 # keyword_search # semantic_search  # full_text_search  # hybrid_search
@@ -168,7 +167,7 @@ def editRetrievalProperty():
     reranking_provider_name  = json_data.get('reranking_provider_name', reranking_provider_name_config)
     # if reranking_enable:
     #     if not reranking_model_name:
-    #         return {'status_code': -1, 'data': "如果开启 rerank ， 必须配置 rerank model", 'info': '如果开启rerank，必须配置 rerank model',}
+    #         return {'code': -1, 'data': "如果开启 rerank ， 必须配置 rerank model", 'message': '如果开启rerank，必须配置 rerank model',}
 
     # recall 相关参数
     top_k = json_data.get('top_k', 10)
@@ -181,28 +180,25 @@ def editRetrievalProperty():
 
     params_data = {
         # base params
-        'name': name,
-        'descripe': descripe,
-
+        'name': name, 'descripe': descripe,
+        
         # 这些参数不建议修改
+        
         'indexing_technique': indexing_technique,
-        "embedding_model":embedding_model_name,
-        "embedding_model_provider": embedding_provider_name,
-
+        
+        "embedding_model":embedding_model_name, "embedding_model_provider": embedding_provider_name,
+        
         'retrieval_model': {
             'reranking_enable': reranking_enable,
             "reranking_mode":reranking_mode,
-
             "reranking_model":{
                 'reranking_provider_name': reranking_provider_name,
                 'reranking_model_name':  reranking_model_name
             },
-
             'score_threshold_enabled': score_threshold_enabled,
             'score_threshold': score_threshold,
             'search_method': search_method,
             'top_k': top_k,
-
             'weights': {
                 # "keyword_setting":{
                 #     "keyword_weight":0.8
@@ -224,17 +220,13 @@ def editRetrievalProperty():
     from cdify.api.dbs.edit_db_retrieval import edit_db
     response = edit_db(dataset_id=dataset_id, data=params_data)
     if response.status_code != 200:
-        return {
-            'status_code': -1, 'data': "", 'info': 'Edit DB failed',
-        }
-    temp_return = {
-        'status_code': 0,
-        'data': response.text,
-        'info': 'Edit DB successful!'
-    }
-    from cdify.fast_response_data_clean import wrap_edit_db_response
-    return wrap_edit_db_response(temp_return)
-
+        return {'code': -1, 'data': "", 'message': 'Edit DB failed',}
+    temp_return = {'code': 0,'data': response.text,'message': 'Edit DB successful!'}
+    # return temp_return
+    # from cdify.fast_response_data_clean import wrap_edit_db_response
+    # return wrap_edit_db_response(temp_return)
+    from cdify.fast_response_data_clean import convert_dify_update_response_to_ragflow_format
+    return convert_dify_update_response_to_ragflow_format(temp_return)
 
 
 
@@ -242,23 +234,20 @@ def editRetrievalProperty():
 
 
 # 对齐路由
-""" 采用只用 db name 进行数据库创建的工作 """
 @timed_request
 @app.route(BASE_URL + '/kb/create', methods=['POST'])
 def create_db_api():
     data = request.get_data()
     json_data = json.loads(data.decode("utf-8"))
-
-    # for each parameter and parameters check
     name = json_data.get('name', '')
     if not name:
-        return {'status_code': -1, 'data': "", 'info': '创建DB必须指定名称'}
+        return {'code': -1, 'data': "", 'message': '创建DB必须指定名称'}
 
     # 验证知识库 name 唯一性
     from cdify.api.dbs.db_list import requests_datasets_list
     already_dbs = requests_datasets_list() # db list
     if name in [i['name'] for i in already_dbs]:
-        return {'status_code': -1, 'data': "", 'info': '知识库名称重复，请求改名称再进行创建'}
+        return {'code': -1, 'data': "", 'message': '知识库名称重复，请求改名称再进行创建'}
 
     description = json_data.get('description', '')
     if not description:
@@ -273,10 +262,11 @@ def create_db_api():
     # 特殊参数，就是自动 init 无法完成指定参数的成功设置
     search_method = json_data.get('search_method', 'semantic_search') # 这里创建时，生成的 db，这个值无论如何指定，都是 semantic_search , 需要调用编辑接口主动修改： # hybrid_search # semantic_search # full_text_search
     if search_method not in ['semantic_search', 'hybrid_search', 'full_text_search']:
-        return {'status_code': -1, 'data': "", 'info': "检索方案设置有误，检索设置必须属于 ['semantic_search', 'hybrid_search', 'full_text_search'] 中的一个"}
+        return {'code': -1, 'data': "", 'message': "检索方案设置有误，检索设置必须属于 ['semantic_search', 'hybrid_search', 'full_text_search'] 中的一个"}
 
     score_threshold_enabled = json_data.get('score_threshold_enabled', True) # 这个值无论如何设置，都是 True，需要后面调用编辑接口主动修改
-    print(type(score_threshold_enabled), score_threshold_enabled)
+    # print(type(score_threshold_enabled), score_threshold_enabled)
+
     embedding_model = json_data.get('embedding_model', embedding_model_config)
     embedding_provider_name = json_data.get('embedding_provider_name', embedding_model_provider_config)
     reranking_enable = json_data.get('reranking_enable', False)
@@ -328,7 +318,7 @@ def create_db_api():
     # response = create_db_new(db_name=name)
 
     if response.status_code != 200:
-        return {'status_code': -1, 'data': "", 'info': '创建 DB 失败，联系开发确认参数具体问题'}
+        return {'code': -1, 'data': "", 'message': '创建 DB 失败，联系开发确认参数具体问题'}
     else:
         # create db response
         data = json.loads(response.text)
@@ -353,20 +343,22 @@ def create_db_api():
 
             if response_with_xz.status_code != 200:
                 return {
-                    'status_code': -1, 'data': "", 
-                    'info': 'DB创建成功，但是在创建成功后，对DB进行修正时发生或错，请联系开发联调',
+                    'code': -1, 'data': "", 
+                    'message': 'DB创建成功，但是在创建成功后，对DB进行修正时发生或错，请联系开发联调',
                 }
             temp_return = {
-                'status_code': 0,'data': json.loads(response_with_xz.text), 
-                'info': '按照参数完成DB修正后，完成DB创建！' # 返回的是 edit db 接口返回的结果
+                'code': 0,'data': json.loads(response_with_xz.text), 
+                'message': '按照参数完成DB修正后，完成DB创建！' # 返回的是 edit db 接口返回的结果
             }
             return wrap_create_db_response(temp_return)
         else:
             temp_return = {
-                'status_code': 0, 'data': data, 
-                'info': '均已按照默认值完成DB创建，知识库创建成功!' # 返回的是 create db api 返回的结果
+                'code': 0, 'data': data, 
+                'message': '均已按照默认值完成DB创建，知识库创建成功!' # 返回的是 create db api 返回的结果
             }
+            # return temp_return
             return wrap_create_db_response(temp_return)
+        
 
 
 
@@ -378,22 +370,22 @@ def delete_db():
     json_data = json.loads(data.decode("utf-8"))
     dataset_id = json_data.get('kb_id','')
     if not dataset_id:
-        return {'status_code': -1, 'data': "请提供要执行删除的 dataset_id", 'info': '请提供要执行删除的 dataset_id',}
+        return {'code': -1, 'data': "", 'message': '请提供要执行删除的 dataset_id',}
 
     # 验证存在这个知识库
     from cdify.api.dbs.db_list import requests_datasets_list
     already_dbs = requests_datasets_list() # db list
     if dataset_id not in [i['id'] for i in already_dbs]:
-        return {'status_code': -1, 'data': "", 'info': f'当前需要被删除的知识库ID {dataset_id} 不存在'}
+        return {'code': -1, 'data': "", 'message': f'当前需要被删除的知识库ID {dataset_id} 不存在'}
 
     from cdify.api.dbs.db_list import delete_db
     response = delete_db(dataset_id=dataset_id)
     if 'false' in response:
-        return {'status_code': -1, 'data': response, 'info': 'Delete DB failed,可能的原因是请求知识库信息失败, 从检查Agent网络开始',}
+        return {'code': -1, 'data': response, 'message': 'Delete DB failed,可能的原因是请求知识库信息失败, 从检查Agent网络开始',}
     return {
-        'status_code': 0, 
+        'code': 0, 
         'data': response, 
-        'info': 'Delete DB successful!'
+        'message': 'Delete DB successful!'
     }
 
 
@@ -409,19 +401,17 @@ def insert_type2db():
     json_data = json.loads(data.decode("utf-8"))
     dataset_id = json_data.get('kb_id','')
     if not dataset_id:
-        return  {
-            'status_code': -1, 'data': "", 'info': '请指定知识库ID'
-        }
-    file_path = json_data.get('file_path','')
+        return  {'code': -1, 'data': "", 'message': '请指定知识库ID'}
+    file_path = json_data.get('file','')
     try:
         f_bytes_obj = open(file_path,'rb')
         f_bytes_obj.close()
     except:
-        return  {
-            'status_code': -1, 'data': "", 'info': '文件读取失败，检查文件路径'
-        }
-    
-    file_name = get_filename(file_path=file_path)
+        return  {'code': -1, 'data': "", 'message': '文件读取失败，检查文件路径'}
+
+    file_name = json_data.get('file_name','')
+    if not file_name:
+        file_name = get_filename(file_path=file_path)
 
     mode = json_data.get('mode','custom')  # automatic
     separator = json_data.get('separator', '\n') # ###  
@@ -457,17 +447,13 @@ def insert_type2db():
     data_json = json.dumps(data_json)
     response = upload_file_with_metadata(db_id=dataset_id, file_name=file_name, file_path=file_path, data_json=data_json)
     if response.status_code != 200:
-        return {
-            'status_code': -1, 'data': "", 'info': '导入数据失败，请检查参数或和开发联调'
-        }
-    temp_return = {
-        'status_code': 0,
-        'data': response.text, 
-        'info': f'导入FILE数据到知识库 {dataset_id} 成功!'
-    }
-    from cdify.fast_response_data_clean import wrap_insert_file_response
-    return wrap_insert_file_response(temp_return)
-
+        return {'status_code': -1, 'data': "", 'info': '导入数据失败，请检查参数或和开发联调'}
+    temp_return = {'status_code': 0, 'data': response.text,  'info': f'导入FILE数据到知识库 {dataset_id} 成功!'}
+    # return temp_return
+    # from cdify.fast_response_data_clean import wrap_insert_file_response
+    # return wrap_insert_file_response(temp_return)
+    from cdify.fast_response_data_clean import convert_dify_upload_response_to_ragflow_format
+    return convert_dify_upload_response_to_ragflow_format(temp_return)
 
 
 
@@ -488,14 +474,15 @@ def insert_txt2db():
     # ==== base server config and test process parameters
     file_name = json_data.get('file_name','')
     text = json_data.get('text','')
-    dataset_id = json_data.get('kb','')
+    dataset_id = json_data.get('kb_id','')
     # /////////////////// test parameters
     # json_data['dataset_id'] = 'd6142a1d-ff1b-470c-84b8-9b6f570f95d9' # test
     # file_name = "鲁迅杂文-《且介亭杂文》-long-16-58", # test
     # text = text_demo_long  # test
 
     if not file_name or not text or not dataset_id:
-        return {'status_code': -1, 'data': "当前【文件名】【文本信息】【数据库ID】存在空，请检查", 'info': '当前【文件名】【文本信息】【数据库ID】存在空，请检查性'}
+        return {'code': -1, 'data': "当前【文件名】【文本信息】【数据库ID】存在空，请检查", 
+                'message': '当前【文件名】【文本信息】【数据库ID】存在空，请检查性'}
 
     # ==== 嵌入之前的文本清洗和前处理工作模式
     mode = json_data.get('mode','custom') # custom 参数将会触发一系列的文档清洗解析参数设置； automatic 根据默认参数执行嵌入和索引
@@ -522,9 +509,9 @@ def insert_txt2db():
     if (doc_form == "hierarchical_model") and (max_tokens_sub >= max_tokens):
         # logger.error(f"当前待索引内容形式为 {doc_form}, 此时 max_tokens_sub 禁止大于 max_tokens，请调整")
         return {
-            'status_code': -1, 
+            'code': -1, 
             'data': "",
-            'info': f"当前待索引内容形式为 {doc_form}, 此时 max_tokens_sub 禁止大于 max_tokens，请调整"
+            'message': f"当前待索引内容形式为 {doc_form}, 此时 max_tokens_sub 禁止大于 max_tokens，请调整"
         }
     if doc_form == "qa_model":
         logger.info(f'当前采用 QA 模式，如果计算资源低，此模式相对耗时且会显著增加 token 消耗！')
@@ -627,11 +614,13 @@ def insert_txt2db():
     from cdify.api.dbs.add_txt_2_db import requests_create_dataset_with_txt
     response = requests_create_dataset_with_txt(dataset_id, params_data)
     if response.status_code != 200:
-        return {'status_code': -1, 'data': "", 'info': '导入数据失败，请检查参数合理性'}
+        return {
+            'code': -1, 'data': "", 
+            'message': '导入数据失败，请检查参数合理性'
+        }
     temp_return = {
-        'status_code': 0, 
-        'data': response.text, 
-        'info': f'导入TXT数据到知识库 {dataset_id} 成功!'
+        'code': 0, 'data': response.text, 
+        'message': f'导入TXT数据到知识库 {dataset_id} 成功!'
     }
     from cdify.fast_response_data_clean import wrap_insert_text_response
     return wrap_insert_text_response(temp_return)
@@ -648,7 +637,7 @@ def get_db_doc_list_api():
     from cdify.api.dbs.db_list import get_db_doc_list
     response = get_db_doc_list(dataset_id)
     if response.status_code != 200:
-        return {'status_code': -1, 'data': "", 'info': '获取知识库 Doc List Failed ！'}
+        return {'code': -1, 'data': "", 'message': '获取知识库 Doc List Failed ！'}
     docs = json.loads(response.text)['data']
     docs_dict = {}
     docs_dict[dataset_id] = []
@@ -658,12 +647,14 @@ def get_db_doc_list_api():
         docform = doc['doc_form']
         docs_dict[dataset_id].append({docid: [docname, docform]})
 
-    return {
-        'status_code': 0, 
-        'data': docs_dict,
-        'info': f'获取知识库 Doc List Success !'
+    temp_return = {
+        'code': 0, 'data': docs_dict,
+        'message': f'获取知识库 Doc List Success !'
     }
+    from cdify.fast_response_data_clean import convert_dify_doc_list_response_to_ragflow_format
+    return convert_dify_doc_list_response_to_ragflow_format(temp_return)
     
+
 
 
 # 对齐路由
@@ -672,29 +663,45 @@ def get_db_doc_list_api():
 def get_db_doc_paragraphs_list():
     param = request.args.to_dict()
     dataset_id = param.get('kb_id','')
-    document_id = param.get('document_id', '')
+    document_id = param.get('doc_id', '')
     if not dataset_id or not document_id:
-        return {'status_code': -1, 'data': "", 'info': '参数没有传递完整，请补全参数！'}
+        return {'code': -1, 'data': "", 'message': '参数没有传递完整，请补全参数！'}
     from cdify.api.dbs.db_list import get_db_doc_paragraphs_list
     response = get_db_doc_paragraphs_list(dataset_id,doc_id=document_id)
     if response.status_code != 200:
-        return {'status_code': -1, 'data': "", 'info': '获取知识库 Doc List Failed ！'}
-    parasLits = json.loads(response.text)['data']
+        return {'code': -1, 'data': "", 'message': '获取知识库 Doc List Failed ！'}
+    
+    keywords = param.get('keywords', '')
+
+
+    from cdify.fast_response_data_clean import convert_dify_to_ragflow_structure4
+    try:
+        parasLits = json.loads(response.text)['data']
+        return convert_dify_to_ragflow_structure4(parasLits,keywords)
+    except:
+        return {'code': -1, 'data': "", 'message': '获取知识库 Doc List Failed ！'}
+
     result = {}
-    result[dataset_id + ' | ' + document_id] = [] # key: db_id | doc_id
+    result[dataset_id + ' | ' + document_id] = [] # key: db_id | doc_id； 复合 key 值
     for para in parasLits:
         para_content = para['content']
         para_tags = para['keywords']
         para_id = para['id']
         result[dataset_id + ' | ' + document_id].append([para_content, para_tags, para_id])
 
-    from cdify.fast_response_data_clean import transform_response_data
     temp_return = {
-        'status_code': 0, 
-        'data': result,
-        'info': f'获取知识库 DocID 的分段列表 Success ！!'
+        'code': 0, 'data': result,
+        'message': f'获取知识库 DocID 的分段列表 Success ！!'
     }
-    return transform_response_data(temp_return)
+    # return temp_return
+    # from cdify.fast_response_data_clean import process_response
+    # return process_response(temp_return,keywords)
+    # from cdify.fast_response_data_clean import transform_response_data
+    # return transform_response_data(temp_return, keywords)
+
+    return parasLits
+
+
 
 
 
@@ -710,12 +717,12 @@ def del_paragraph():
     from cdify.api.dbs.doc_actions import del_para_in_doc
     response = del_para_in_doc(dataset_id=dataset_id,doc_id=doc_id,seg_id=para_id)
     if 'false' in response:
-        return {'status_code': -1, 'data': response, 'info': 'Delete Paragraph failed',}
-    return {
-        'status_code': 0, 
-        'data': response, 
-        'info': 'Delete Paragraph successful!'
-    }
+        return {'code': -1, 'data': response, 'message': 'Delete Paragraph failed',}
+    return {'code': 0, 'data': response, 'message': 'Delete Paragraph successful!'}
+
+
+
+
 
 
 
@@ -730,7 +737,7 @@ def add_paragraph():
     keywords = json_data.get('keywords', []) # 关键字信息，非必填
     content = json_data.get('content', '')
     if not content:
-        return {'status_code': -1, 'data': response, 'info': '请输入要更新的内容',}
+        return {'code': -1, 'data': response, 'message': '请输入要更新的内容',}
     
     # 验证指定 doc_id 是什么类型并完整封装 params 参数
     
@@ -745,7 +752,7 @@ def add_paragraph():
     
     answer = json_data.get('answer', '')
     if target_doc_type == 'qa_model' and not answer:
-        return {'status_code': -1, 'data': response, 'info': '当前待add paragraph 的 doc 是 Q-A 文档，必须传入 anser 答案信息 !',}
+        return {'code': -1, 'data': response, 'message': '当前待add paragraph 的 doc 是 Q-A 文档，必须传入 anser 答案信息 !',}
 
     temp_data = []
     temp_data.append({'content': content, 'answer': answer, 'keywords': keywords})
@@ -755,19 +762,19 @@ def add_paragraph():
     from cdify.api.dbs.doc_actions import add_content_2_doc
     response = add_content_2_doc(dataset_id,doc_id,params['data'])
     if response.status_code != 200:    
-        return {'status_code': -1, 'data': "", 'info': '向知识库的文档添加文本段落失败 ！'}
+        return {'code': -1, 'data': "", 'message': '向知识库的文档添加文本段落失败 ！'}
 
     try:
         data_response = json.loads(response.text)
         from cdify.fast_response_data_clean import filter_insert_response
         temp_return = {
-            'status_code': 0, 
-            'data': data_response, 
-            'info': '向知识库的文档添加文本段落成功!'
+            'code': 0, 'data': data_response, 
+            'message': '向知识库的文档添加文本段落成功!'
         }
         return filter_insert_response(temp_return)
     except Exception as e:
-        return {'status_code': -1, 'data': "", 'info': '向知识库的文档添加文本段落失败, 由于API响应结果 json 序列化失败导致 ！'}
+        return {'code': -1, 'data': "", 
+                'message': '向知识库的文档添加文本段落失败, 由于API响应结果 json 序列化失败导致 ！'}
 
 
     
@@ -777,8 +784,6 @@ def add_paragraph():
 
 
 # =========================================================================================================
-
-
 
 """
 curl --location --request POST 'http://10.0.15.21/v1/datasets/{dataset_id}/retrieve' \
@@ -818,7 +823,7 @@ def retrieval_db():
     data = request.get_data()
     json_data = json.loads(data.decode("utf-8"))
     dataset_id = json_data.get('kb_id', '')
-    query = json_data.get('query', '')
+    query = json_data.get('question', '')
     if not query or not dataset_id:
         return {'status_code': -1, 'data': "", 'info': '知识库ID or Query 参数信息为空'}
     
@@ -829,10 +834,10 @@ def retrieval_db():
         'reranking_provider_name' : json_data.get('reranking_provider_name', reranking_provider_name_config),
         'reranking_model_name' : json_data.get('reranking_provider_name', reranking_model_name_config)
     }
-    weight =  json_data.get('weight', 0.7)
+    weight =  json_data.get('vector_similarity_weight', 0.7)
     top_k = json_data.get('top_k', 5)
-    score_threshold_enabled = json_data.get('score_threshold_enabled', True) # 默认保持 false，否则很难召回
-    score_threshold = json_data.get('score_threshold', 0.1)
+    score_threshold_enabled = json_data.get('score_threshold_enabled', False) # 默认保持 false，否则很难召回
+    score_threshold = json_data.get('similarity_threshold', 0.1)
     metadata_filtering_conditions = {}
 
     params = {
@@ -850,18 +855,12 @@ def retrieval_db():
     }
 
     from cdify.api.dbs.doc_actions import retrieval
-    response = retrieval(dataset_id, params)
+    response = retrieval(dataset_id=dataset_id, data=params)
     if response.status_code != 200:    
-        return {
-            'status_code': -1, 'data': "", 'info': '知识库检索失败 ！'
-        }
-    
+        return {'code': -1, 'data': "", 'message': '知识库检索失败 ！'}
     data_response = json.loads(response.text)
-    temp_return = {
-        'status_code': 0, 
-        'data': data_response, 
-        'info': '知识库检索成功!'
-    }
+    temp_return = {'code': 0,'data': data_response, 'message': '知识库检索成功!'}
+    # return temp_return
     from cdify.fast_response_data_clean import wrap_knowledge_search_response
     return wrap_knowledge_search_response(temp_return)
 
@@ -965,3 +964,4 @@ if __name__ == '__main__':
 
     # servr docker
     app.run(debug=True, host='0.0.0.0', port=5627)
+
