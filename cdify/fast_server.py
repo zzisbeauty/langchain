@@ -267,9 +267,11 @@ def create_db_api():
 
     embedding_model = json_data.get('embedding_model', embedding_model_config)
     embedding_provider_name = json_data.get('embedding_provider_name', embedding_model_provider_config)
+    
     reranking_enable = json_data.get('reranking_enable', False)
     reranking_model_name = json_data.get('reranking_model_name', reranking_model_name_config)
     reranking_provider_name = json_data.get('reranking_provider_name', reranking_provider_name_config)
+
     score_threshold = json_data.get('score_threshold', 0.75)
     top_k = json_data.get('top_k', 3)
     weights = json_data.get('weights', 0.8)
@@ -297,7 +299,7 @@ def create_db_api():
         "retrieval_model":{
             'search_method' : search_method, 
             'reranking_enable' : reranking_enable,
-            # # 当 rerank enable == True 时，以下参数必须配置，不可为空
+            # # 当 rerank enable == True 时，以下参数必须配置，反之可为空
             'reranking_model_name' : reranking_model_name,
             'reranking_provider_name' : reranking_provider_name,
 
@@ -316,8 +318,7 @@ def create_db_api():
     # response = create_db_new(db_name=name)
 
     if response.status_code != 200:
-        return {'code': -1, 'data': "", 
-                'message': '创建 DB 失败，联系开发确认参数具体问题'}
+        return {'code': -1, 'data': "", 'message': '创建 DB 失败，联系开发确认参数具体问题'}
     else:
         # create db response
         data = json.loads(response.text)
@@ -897,6 +898,9 @@ def start_chat():
         'status_code': 0,
         'info': 'request chat info successful!'
     }
+
+
+
 
 
 @app.route(BASE_URL + '/downDBFiles', methods=['GET'])

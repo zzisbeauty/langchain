@@ -1,0 +1,423 @@
+## 基础说明
+
+### 服务信息
+
+1.Hanwei-.10.0..15.21server
+2.Docker lc_dify_api；docker exec -it 启动并进入容器
+3.进入容器后，代码运行环境自动被激活，无需做额外的环境配置
+4.cd /home/langchain/cdify
+5.阻塞终端启动服务：gunicorn fast_server:app -c gunicorn.conf.py
+6.非阻塞终端启动服务（后台启动服务）待补充
+7.可以随时添加worker提升服务并发能力
+
+
+### 服务路由构成
+
+- http://10.0.15.21:5627
+
+
+### 健康检查
+
+- http://10.0.15.21:5627/hanwei/hello
+
+```json
+{
+    "data": "",
+    "info": "Healthy check successful!",
+    "status_code": 0
+}
+```
+
+
+### 模型返回值的基础结构说明
+
+参考如上健康检查接口，response 为 dict，会包含三个字段：
+1. data : 如有需要解析的数据，存储在此字段，否则为空
+2. info : 记录请求成功或者失败的一些必要介绍说明，方便定位问题
+3. status_code: 只有 0 和 -1 两种值，0代表成功，-1 代表失败。
+   当 -1 时，info 中记录的信息是有价值的，否则 info 的信息可以不怎么关注
+
+
+
+## DATABASE（知识库）操作API 清单
+
+### ① 获取所有知识库
+
+- GET http://10.0.15.21:5627/hanwei/dbList
+
+- params
+
+```json
+{
+  page :  默认为1; 分页吗
+  limit :  默认为 100；每页限制数量
+  keyword : 默认为 ""， 查询关键字
+}
+```
+
+- response
+
+```
+{
+	"data": [
+		{
+			"app_count": 0,
+			"built_in_field_enabled": false,
+			"created_at": 1751357390,
+			"created_by": "c85ba575-0a9f-4c7c-bc1b-95dc6810efaf",
+			"data_source_type": "upload_file",
+			"description": "测试创建DB - API",
+			"doc_form": "text_model",
+			"doc_metadata": [],
+			"document_count": 5,
+			"embedding_available": true,
+			"embedding_model": "bge-m3:latest",
+			"embedding_model_provider": "langgenius/ollama/ollama",
+			"external_knowledge_info": {
+				"external_knowledge_api_endpoint": null,
+				"external_knowledge_api_id": null,
+				"external_knowledge_api_name": null,
+				"external_knowledge_id": null
+			},
+			"external_retrieval_model": {
+				"score_threshold": 0.75,
+				"score_threshold_enabled": false,
+				"top_k": 3
+			},
+			"id": "0d4b4b25-f149-4843-8084-a36307c92c92",
+			"indexing_technique": "high_quality",
+			"name": "test-db-16:09",
+			"permission": "only_me",
+			"provider": "vendor",
+			"retrieval_model_dict": {
+				"reranking_enable": false,
+				"reranking_mode": "weight_score",
+				"reranking_model": {
+					"reranking_model_name": "bge-reranker-base",
+					"reranking_provider_name": "xinference"
+				},
+				"score_threshold": 0.75,
+				"score_threshold_enabled": false,
+				"search_method": "hybrid_search",
+				"top_k": 3,
+				"weights": {
+					"keyword_setting": {
+						"keyword_weight": null
+					},
+					"vector_setting": {
+						"embedding_model_name": "bge-m3:latest",
+						"embedding_provider_name": "langgenius/ollama/ollama",
+						"vector_weight": 0.8
+					},
+					"weight_type": null
+				}
+			},
+			"tags": [],
+			"updated_at": 1751357390,
+			"updated_by": "c85ba575-0a9f-4c7c-bc1b-95dc6810efaf",
+			"word_count": 2519
+		}
+	],
+	"info": "Query db list successful!",
+	"status_code": 0
+}
+```
+
+
+
+
+
+
+# ================================
+
+
+
+
+
+
+
+
+
+
+
+### 基本说明
+
+1. 基础路由： /hanwei； 以下所有API均由 base_url + 特定路由构成
+
+2. 关于 API 参数信息
+
+- GET 请求参数均明确
+- 绝大部分 post 请求参数复杂，且参数之间相互关联：比如 A 参数设置 value1， B 参数就需要做联合更改取其他值，为避免接口文档繁复且出现误差：
+  - 所有接口均在满足必要功能情况下，仅留出必填值，这些必填参数请在调用时传入；
+  - 其他绝大部分参数均设置了默认值，非必要不用填写；如果在实际对接开发实施
+
+3. 关于 API 返回信息说明：具体返回结合实际返回情况处理，因为字段很多，记录影响文档清晰程度，这里不做单独记录
+4. 返回结构均为如下结构
+
+{
+	"data": "", # 如果有数据，这里会记录返回的数据字段；这个根据接口情况不同，返回的字段会不同；
+	"info": "Healthy check successful!",  # 如果是 -1，这里会记录错误原因。如果是 0，这个值就不重要
+	"status_code": 0  # -1 表示请求有异常
+}
+
+
+
+
+
+### 健康检查
+
+- /hello
+- get http://10.0.15.21:5627/hanwei/hello
+- renturn
+
+```
+{
+	"data": "",
+	"info": "Healthy check successful!",
+	"status_code": 0
+}
+```
+
+
+
+
+### 对话模块
+
+#### 聊天会话
+
+- /chat
+- 此接口暂为开发，暂时没有要介入对话功能的需求
+
+
+
+
+
+
+### databsae and doc 操作模块
+
+#### 获取所有 DBs
+
+- /dbList
+- get http://10.0.15.21:5627/hanwei/dbList
+- params，如下参数均有默认值，可不传
+
+```
+page: 分页，默认为 1
+limit: 每页 db 数量，默认为 100
+keyword: 可不传，默认为空
+```
+
+- return 创建的知识库 list ； 具体字段优化，对接时根据对接情况处理
+
+```
+{
+	"data": [ # 该字段是 db list，每个元素都包含了 db 的字段信息
+		{
+			"app_count": 0,
+			"built_in_field_enabled": false,
+			"created_at": 1750382814,
+			"created_by": "c85ba575-0a9f-4c7c-bc1b-95dc6810efaf",
+            ...
+		},
+        ...
+    ]
+    "info": "Query db list successful!",
+	"status_code": 0
+}
+```
+
+
+#### 获取指定 DB 的具体信息
+
+- /dbInfo
+- get http://10.30.30.97:5611/hanwei/dbInfo?dataset_id=d6142a1d-ff1b-470c-84b8-9b6f570f95d9
+- params： dataset_id  # 必填
+- return： 具体返回结合实际返回情况处理，因为字段很多，记录影响文档清晰程度，这里不做单独记录
+
+#### 创建知识库
+
+- /createDb
+- post http://10.0.15.21:5627/hanwei/createDb
+- params: 
+  1. 除 name 外，其他参数均为默认值，可以不填，但是如果传入了默认参数字段，则必须传值
+  2. 此接口参数复杂，可以保留默认参数不填写，会以最佳方式创建 DB；如果确实有需求需要明确指定字段，开发时对接
+
+```
+{
+    "name": "test-db-09:26",
+    // 以下参数全部保持默认值，不指定值时不用声明这些参数，主动声明就要填写 value
+    // "description": "测试创建DB - API",
+    // "indexing_technique": "high_quality",
+    // "provider": "",
+    // "embedding_model":"",
+    // "embedding_provider_name":"",
+    "retrieval_model":{
+        // "search_method": "",
+        // "reranking_enable":"",
+        // "reranking_model_name":"",
+        // "reranking_provider_name":"",
+        // "top_k":"",
+        // "score_threshold_enabled":"",
+        // "score_threshold":""
+    }
+}
+```
+
+#### 删除知识库
+
+- /deleteDb
+- delete  http://10.0.15.21:56271/hanwei/deleteDb
+- params  dataset_id # 必填
+- return 根据返回状态码中的 0 or -1 判断创建是否成功即可
+
+#### 编辑知识库属性（关键参数）
+
+- /editDbProperty
+- post http://10.0.15.21:56271/hanwei/editDbProperty
+- params 
+  1. ataset_id # 必填；
+  2. 其他参数根据如下说明，此接口参数复杂。在调用 DB 创建 api 时，会以最佳方式创建知识库，因此其他注释
+     掉的参数可以不填，如果有必须要编辑 DB 的情况，开发时对接具体的参数值
+
+```
+{
+    "dataset_id": "66a1837a-2ebc-4ec0-9947-81059d4d9f65"
+    // 以下参数全部保持默认值，不指定值时不用声明这些参数，主动声明就要填写 value
+    // "search_method": "hybrid_search",
+    // "weights": "0.8",
+    // "indexing_technique": "high_quality",
+    // "embedding_model_name":"",
+    // "embedding_provider_name":"",
+    // 检索相关参数
+    // "search_method": "",
+    // "reranking_enable":"",
+    // "reranking_mode":"weight_score",
+    // "reranking_model_name":"",
+    // "reranking_provider_name":"",
+    // "top_k":"",
+    // "score_threshold_enabled":"",
+    // "score_threshold":""
+}
+```
+
+#### 向知识库插入文件（以文件作为信息载体）
+
+- /insertTypeFile2DB
+- post http://10.0.15.21:56271/hanwei/insertTypeFile2DB
+- params  此接口涉及到的字段复杂，有时候用户有 Q-A 生成等需求，以及文本切分嵌入需求等，在实际对接开发时处理
+  1. dataset_id 必填
+  2. file_path 必填
+  3. 其他参数无需填写，已经设定好默认值
+
+```
+{
+    "dataset_id": "66a1837a-2ebc-4ec0-9947-81059d4d9f65",
+    "file_path":"E:\\其他文件\\联想一体机选型.txt"
+    // 以下参数不传则自动执行默认配置，主动声明则必须填写 value
+    // "separator":"###",
+    // "mode": "custom",
+    // "indexing_technique": "high_quality",
+    // "remove_extra_spaces": true,
+    // "remove_urls_emails": true,
+    // "max_tokens": 1000
+}
+```
+
+#### 向知识库插入文本（直接插入想要输入的文本）
+
+`此接口是为了方便临时新增某些文本信息开发，有时候用户需要临时加入一些文本段落时，调用此接口`
+
+- /insertText2DB
+- post http://10.0.15.21:56271/hanwei/insertText2DB
+- params  以下均为必填； 此接口涉及到的字段复杂，有时候用户有 Q-A 生成等需求，以及文本切分嵌入需求等，在实际对接开发时处理
+```
+{
+    "dataset_id": "29fc52c3-0aff-44f1-9dce-6b6c38768369",  # 必填
+    "file_name":"", # 插入文本形成的段落名称
+    "text":"" # 待插入的文本
+}
+```
+
+#### 获取指定知识库下的文档列表
+
+- /getDbDocList
+- get http://10.0.15.21:56271/hanwei/getDbDocList
+- params  dataset_id # 必填
+
+#### 获取指定知识库下指定文档的分段情况
+
+- /getDbDocParasList
+- get http://10.0.15.21:56271/hanwei/getDbDocParasList
+- params
+  - dataset_id   # 知识库ID
+  - document_id  # 上述知识库中指定 docID
+
+#### 删除指定知识库下指定文档的指定分段
+
+- /delParagraphs
+- delete  http://10.0.15.21:56271/hanwei/delParagraphs
+- params
+
+```
+{
+    "dataset_id": "ca2c2d3e-5131-4287-ba0b-a12547dbec1b", # 数据库ID
+    "doc_id": "8de3f249-dd62-40af-8b4a-feee99e7fa0f",     # 文档ID； 该文档必须在上述数据库ID中
+    "para_id": "5b51251a-ac30-4bba-a21c-04c632b197ee"     # 需要被删除的段落 ID
+}
+```
+
+#### 向指定文档插入文本的形式完善文档内容（增加 doc paragraph）
+
+- /addParagraph
+- post http://10.0.15.21:56271/hanwei/addParagraph
+- params
+
+```
+{
+    "dataset_id": "66a1837a-2ebc-4ec0-9947-81059d4d9f65",
+    // "doc_id": "b02594a4-500b-45d5-802c-7b6ffe406f25",  // qa-model
+    "doc_id": "660cf441-de4d-4d79-9f79-4fe3d12c7273", // text-model
+    "content": "你好，我爱南京",
+    "answer": "是的，我爱北京天安门"
+}
+```
+
+- 参数的必要说明
+  1. dataset_id  # 常规参数
+  2. doc_id      # 常规参数， doc 需要在 db 内
+  3. content 必填
+  4. answer 只有在 db 是 Q-Q 模式下才是必填，其他模式下，该字段可以为空
+
+
+
+
+
+
+### 检索模块
+
+#### 发起检索
+
+- /dbRetrieval
+- post http://10.0.15.21:56271/hanwei/dbRetrieval
+- params
+
+```
+{
+    "dataset_id": "66a1837a-2ebc-4ec0-9947-81059d4d9f65",  # 必填
+    // "doc_id": "b02594a4-500b-45d5-802c-7b6ffe406f25",  // qa-model
+    // "doc_id": "660cf441-de4d-4d79-9f79-4fe3d12c7273", // text-model
+    "query": "裨益，好处"  # 查询的文本，必填
+}
+```
+
+
+
+### 获取文档的一些状态
+
+#### 获取文档 embedding 进度
+
+- /embTqdm
+- get http://10.0.15.21:56271/hanwei/dbRetrieval
+- params
+  - dataset_id  # 必填
+  - batch       # 上传文档的批次号
