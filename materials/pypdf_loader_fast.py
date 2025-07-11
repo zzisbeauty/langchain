@@ -3,7 +3,7 @@ import os, pathlib
 # print("CWD :", os.getcwd())
 sys.path.append(os.getcwd())
 
-from cdify.loggers import get_logger
+from cdify.utils.loggers import get_logger
 logger = get_logger("pdf_extractor_log_obj")
 
 import langchain_community

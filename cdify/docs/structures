@@ -1,0 +1,14 @@
+your_project/
+├── app/
+│   ├── __init__.py
+│   ├── api.py              # FastAPI路由入口
+│   ├── dify_client.py      # 封装 Dify API 调用
+│   ├── services.py         # 核心业务逻辑（异步、并发）
+│   ├── models.py           # Pydantic 数据模型
+│   ├── exceptions.py       # 自定义异常
+│   └── utils/
+│       ├── concurrency.py  # 并发处理（线程池/协程）
+│       └── decorators.py   # 装饰器：限流/重试/日志
+├── tests/                  # 测试
+├── config.py               # 配置读取
+└── main.py                 # 启动入口

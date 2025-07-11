@@ -10,13 +10,13 @@ errorlog = "-"
 loglevel = "info"
 
 # 启动命令
-# gunicorn fast_server:app -c gunicorn.conf.py
+# gunicorn main:app -c gunicorn.conf.py
 
 # 后台启动
-# nohup gunicorn -w 4 -b 0.0.0.0:5627 fast_server:app > gunicorn.log 2>&1 &
+# nohup gunicorn -w 4 -b 0.0.0.0:5627 main:app > gunicorn.log 2>&1 &
 # 启动后检查进程 ps -ef | grep gunicorn
 # kill pid 停止服务 or  pkill gunicorn
 
 # 高阶管理 gunicorn pid 方案
-# nohup gunicorn -w 4 -b 0.0.0.0:5627 fast_server:app --pid gunicorn.pid > gunicorn.log 2>&1 &
+# nohup gunicorn -w 4 -b 0.0.0.0:5627 main:app --pid gunicorn.pid > gunicorn.log 2>&1 &
 # 杀死进程 kill $(cat gunicorn.pid)
