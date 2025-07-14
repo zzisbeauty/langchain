@@ -10,7 +10,7 @@ from .retrieval import retrieval
 from .embeddings import emb_status
 
 # from .chat_base import chat_base
-# from .downfiles import downloadfiles
+from .downfiles import downloadfiles
 
 from .document_del import deldoc
 
@@ -25,9 +25,9 @@ all_blueprints = [
     kbs_kbdoclist,
     retrieval,
     emb_status,
+    
+    downloadfiles,
+    deldoc,
 
     # chat_base,
-    # downloadfiles,
-    
-    deldoc
 ]

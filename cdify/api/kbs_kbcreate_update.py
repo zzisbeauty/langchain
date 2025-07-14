@@ -58,12 +58,6 @@ def _struct_parasm(
 
 
 
-"""
-混合检索，此方法会少一个参数，导致文件无法正常上传，找不到是少了哪个参数，会报错如下: 
-1 validation error for KnowledgeConfig retrieval_model.weights.
-keyword_setting.keyword_weight Input should be a valid number [type=float_type, input_value=None, input_type=NoneType] 
-For further information visit https://errors.pydantic.dev/2.9/v/float_type
-"""
 @kbs_kernel.route(BASE_URL + '/kb/update', methods=['PATCH'])
 @timed_request
 def editRetrievalProperty():

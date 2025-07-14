@@ -872,40 +872,119 @@ POST /v1/document/run
 
 
 
+## GET 文件下载（新增）
 
-
-
-
-
-## GET 文件下载（此接口目前未开发）
+### 研究院接口
 
 GET /v1/document/get/f48d71bc36b811f0b2c88aca13ba27e8
 
-### 请求参数
+#### 请求参数
 
 |名称|位置|类型|必选|说明|
 |---|---|---|---|---|
 |Username|header|string| 否 |none|
 
-> 返回示例
-
-> 200 Response
+#### 返回示例
 
 ```
 {}
 ```
 
-### 返回结果
+#### 返回结果
 
 |状态码|状态码含义|说明|数据模型|
 |---|---|---|---|
 |200|[OK](https://tools.ietf.org/html/rfc7231#section-6.3.1)|none|Inline|
 
-### 返回数据结构
+#### 返回数据结构
 
 
+### 本地下载接口(单文件下载)
 
+GET /document/get
 
+#### 参数要求
+
+- kb_id： 必填
+- document_id: 必填
+- download_dir： 下载路径，非必填
+
+#### 响应情况
+
+```json
+{
+	"code": 0,
+	"data": {
+		"download_url": "http://10.0.15.21/files/debad906-570e-4302-b1a4-0ffd5253d0d1/file-preview?timestamp=1752224762&nonce=336efb8db41fdbd128cc758b81ab68a0&sign=_8O5UD9jpFypZTFrnWbJSIsu25t2_DN2-MVBvJJR1LI=&as_attachment=true",
+		"file_info": {
+			"created_at": 1752214968.581919,
+			"created_by": "c85ba575-0a9f-4c7c-bc1b-95dc6810efaf",
+			"download_url": "/files/debad906-570e-4302-b1a4-0ffd5253d0d1/file-preview?timestamp=1752224762&nonce=336efb8db41fdbd128cc758b81ab68a0&sign=_8O5UD9jpFypZTFrnWbJSIsu25t2_DN2-MVBvJJR1LI=&as_attachment=true",
+			"extension": "pdf",
+			"id": "debad906-570e-4302-b1a4-0ffd5253d0d1",
+			"mime_type": "application/pdf",
+			"name": "DB21T 3976-2024_《农村集中供水工程水价测算导则》.pdf",
+			"size": 810648,
+			"url": "/files/debad906-570e-4302-b1a4-0ffd5253d0d1/file-preview?timestamp=1752224762&nonce=336efb8db41fdbd128cc758b81ab68a0&sign=_8O5UD9jpFypZTFrnWbJSIsu25t2_DN2-MVBvJJR1LI="
+		},
+		"file_path": "./cdify/datas/downloads-from-dify/DB21T 3976-2024_《农村集中供水工程水价测算导则》.pdf"
+	},
+	"elapsed_s": 0.0647,
+	"message": "文档已成功下载到: ./cdify/datas/downloads-from-dify/DB21T 3976-2024_《农村集中供水工程水价测算导则》.pdf"
+}
+```
+
+### 文件下载接口（批量下载）
+
+GET /documents/batch-download
+
+#### 参数情况
+
+- kb_id： 知识库ID 必填
+- download_dir： 文件存储路径，非必填
+
+#### 响应结果
+
+```json
+{
+	"code": 0,
+	"data": {
+		"download_dir": "",
+		"failed_count": 0,
+		"results": [
+			{
+				"document_id": "39ea732d-f58e-4944-bc68-087ac81e3489",
+				"document_name": "[总-产品功能开发指导]应用场景与功能模块.docx",
+				"result": {
+					"code": 0,
+					"data": {
+						"download_url": "http://10.0.15.21/files/d8d023cf-dd17-446e-8ea9-5f62e0c92991/file-preview?timestamp=1752225740&nonce=c9b5e647dafa9f0cb4afe545731d0648&sign=2WC4W1__FSKALI8S7jonS-5jAbOPIK9I9x0LNyGH6DI=&as_attachment=true",
+						"file_info": {
+							"created_at": 1752054566.264399,
+							"created_by": "c85ba575-0a9f-4c7c-bc1b-95dc6810efaf",
+							"download_url": "/files/d8d023cf-dd17-446e-8ea9-5f62e0c92991/file-preview?timestamp=1752225740&nonce=c9b5e647dafa9f0cb4afe545731d0648&sign=2WC4W1__FSKALI8S7jonS-5jAbOPIK9I9x0LNyGH6DI=&as_attachment=true",
+							"extension": "docx",
+							"id": "d8d023cf-dd17-446e-8ea9-5f62e0c92991",
+							"mime_type": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+							"name": "[总-产品功能开发指导]应用场景与功能模块.docx",
+							"size": 16301,
+							"url": "/files/d8d023cf-dd17-446e-8ea9-5f62e0c92991/file-preview?timestamp=1752225740&nonce=c9b5e647dafa9f0cb4afe545731d0648&sign=2WC4W1__FSKALI8S7jonS-5jAbOPIK9I9x0LNyGH6DI="
+						},
+						"file_path": "./cdify/datas/downloads-from-dify/[总-产品功能开发指导]应用场景与功能模块.docx"
+					},
+					"message": "文档已成功下载到: ./cdify/datas/downloads-from-dify/[总-产品功能开发指导]应用场景与功能模块.docx"
+				},
+				"status": "success"
+			},
+      ... // 其他文件信息，结构相同，所以省略掉避免繁复
+		],
+		"success_count": 5,
+		"total_documents": 5
+	},
+	"elapsed_s": 0.5734,
+	"message": "批量下载完成，成功: 5，失败: 0"
+}
+```
 
 
 
