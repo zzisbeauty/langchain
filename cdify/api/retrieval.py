@@ -21,11 +21,14 @@ def retrieval_db():
     
     reranking_enable = json_data.get('reranking_enable', False) # 如果检索模式为 semantic_search 模式或者 hybrid_search 则传值，说明用到向量时必有排序发生
     reranking_mode = {
-        'reranking_provider_name' : json_data.get('reranking_provider_name', reranking_provider_name_config),
-        'reranking_model_name' : json_data.get('reranking_provider_name', reranking_model_name_config)
+        # 'reranking_provider_name' : json_data.get('reranking_provider_name', reranking_provider_name_config),
+        # 'reranking_model_name' : json_data.get('reranking_provider_name', reranking_model_name_config)
+        'reranking_provider_name':'',
+        'reranking_model_name': ''
+
     }
 
-    weight =  json_data.get('vector_similarity_weight', 0.7)
+    weight =  json_data.get('vector_similarity_weight', 0.5)
     top_k = json_data.get('top_k', 5)
     score_threshold_enabled = json_data.get('score_threshold_enabled', False) # 默认保持 false，否则很难召回
     score_threshold = json_data.get('similarity_threshold', 0.1)

@@ -86,10 +86,11 @@ def editRetrievalProperty():
     # rerank 相关参数
     reranking_mode = "weight_score",
     reranking_enable  = json_data.get('reranking_enable', False) # 此参数目前 True or False 无差别； 需要源码检查此参数 ？？？
-    # reranking_model_name  = json_data.get('reranking_model_name',reranking_model_name_config)
-    # reranking_provider_name  = json_data.get('reranking_provider_name', reranking_provider_name_config)
-    reranking_model_name = ''
-    reranking_provider_name = ''
+    reranking_model_name  = json_data.get('reranking_model_name',reranking_model_name_config)
+    reranking_provider_name  = json_data.get('reranking_provider_name', reranking_provider_name_config)
+    if reranking_enable:
+        if not reranking_model_name:
+            return {'code': -1, 'data': "", 'message': '如果开启rerank，必须配置 rerank model',}
 
     # recall / retrieval 相关参数
     top_k = json_data.get('top_k', 10)
@@ -186,11 +187,9 @@ def create_db_api():
     embedding_provider_name = json_data.get('embedding_provider_name', embedding_model_provider_config)
     
     reranking_enable = json_data.get('reranking_enable', False)
-    # # 当 rerank enable == True 时，以下参数必须配置，如果没有 rerank，这些值设置为空
-    # reranking_model_name = json_data.get('reranking_model_name', reranking_model_name_config)
-    # reranking_provider_name = json_data.get('reranking_provider_name', reranking_provider_name_config)
-    reranking_model_name = ''
-    reranking_provider_name = ''
+    # # 当 rerank enable == True 时，以下参数必须配置，反之可为空
+    reranking_model_name = json_data.get('reranking_model_name', reranking_model_name_config)
+    reranking_provider_name = json_data.get('reranking_provider_name', reranking_provider_name_config)
 
     score_threshold = json_data.get('score_threshold', 0.75)
     top_k = json_data.get('top_k', 3)
@@ -216,20 +215,15 @@ def create_db_api():
         # 'embedding_provider_name' : embedding_provider_name, # this key is false ?  source my
         'embedding_model_provider': embedding_provider_name, # is true
 
-        # 检索与召回参数配置，且这里需要说明的是：
-        # 只要 retrieval_model 包含 reranking_model 字段且该字段有 reranking_provider_name，系统就会调用验证函数
-        # api/controllers/service_api/dataset/dataset.py
-        # 这个验证逻辑不会检查 reranking_enable 的值，而是直接验证模型配置的有效性： api/services/dataset_service.py
-        # 因此这个 rerank 没有的时候就直接设置为空；
-        # 或者将整个  retrievel model 取消，但这是不推荐的；
+        # 检索与召回参数配置
         "retrieval_model":{
             'search_method' : search_method, 
 
             'reranking_enable' : False,
-            "reranking_model": {
-                'reranking_model_name' : reranking_model_name,
-                'reranking_provider_name' : reranking_provider_name,
-            },
+            # "reranking_model": {
+            #     'reranking_model_name' : reranking_model_name,
+            #     'reranking_provider_name' : reranking_provider_name,
+            # },
             
             'top_k' : top_k,
             'score_threshold_enabled' : score_threshold_enabled,
@@ -238,7 +232,7 @@ def create_db_api():
                 "weight_type": "customized", 
                 "vector_setting":{
                     "vector_weight":weights,
-                    "embedding_provider_name": embedding_provider_name,
+                    "embedding_provider_name": embedding_provider_name,  
                     "embedding_model_name": embedding_model  
                 },
                 "keyword_setting":{  

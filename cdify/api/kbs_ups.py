@@ -133,8 +133,10 @@ def insert_txt2db():
     embedding_model = json_data.get('embedding_model', embedding_model_config)
     embedding_model_provider = json_data.get('embedding_model_provider', embedding_model_provider_config)
     reranking_enable = json_data.get('reranking_enable', False) # 依赖配置 rerank 模型；如果是高精度场景，召回数量应设置小一点，rerank 可以不配置，如果是 True，必须配置 rerank model
-    reranking_model_name = json_data.get('reranking_model_name', reranking_model_name_config)
-    reranking_provider_name = json_data.get('reranking_provider_name', reranking_provider_name_config)
+    # reranking_model_name = json_data.get('reranking_model_name', reranking_model_name_config)
+    reranking_model_name = ""
+    # reranking_provider_name = json_data.get('reranking_provider_name', reranking_provider_name_config)
+    reranking_provider_name = ""
 
     # ==== 检索与召回 config
     score_threshold_enabled = json_data.get('score_threshold_enabled', False) # 是否开启语义召回分数限制，默认值为 False；如果对于召回精度要求不严格，可不用调整

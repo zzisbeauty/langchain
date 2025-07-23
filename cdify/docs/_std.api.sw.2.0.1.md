@@ -32,29 +32,28 @@ generator: "@tarslib/widdershins v4.0.30"
 # 接口基础信息
 
 ## Base URLs
+
 http://10.0.15.21:5627/hanwei/v1
 
 
 ## Authentication
 
 ### dify
-
 认证模块在网关进行控制；程序内部不涉及认证操作
 
-
 ### neo4j server
-
 - neo4j base64 密钥信息 `bmVvNGo6OU5WODR0TFRjQkxvVnQ=`
 - Authorization: Basic bmVvNGo6OU5WODR0TFRjQkxvVnQ=
 
 #### 图数据库服务状态快速测试
-
 ```shell
 curl -H "Authorization: Basic bmVvNGo6OU5WODR0TFRjQkxvVnQ=" \
      -H "Content-Type: application/json" \
      -d '{"statements":[{"statement":"MATCH (n) RETURN n LIMIT 1"}]}' \
      http://10.0.15.21:7474/db/neo4j/tx/commit
 ```
+
+
 
 
 # 接口服务健康检查
@@ -76,13 +75,11 @@ curl -H "Authorization: Basic bmVvNGo6OU5WODR0TFRjQkxvVnQ=" \
 
 # 研究院知识库/知识库管理
 
-
 ## GET 获取知识库列表 （已兼容）
 
 GET /kb/list
 
 ### 请求参数
-
 |名称|位置|类型|必选|说明|
 |---|---|---|---|---|
 |page|query|string| 否 |none|
@@ -93,7 +90,6 @@ GET /kb/list
 1. 没有 Username 参数，因为这里不做权限管理 
 
 ### 返回示例
-
 ```json
 {
   "code": 0,
@@ -130,7 +126,6 @@ GET /kb/list
 POST /kb/create
 
 ### 请求参数
-
 ```json
 {
   "name": "testApi"
@@ -138,7 +133,6 @@ POST /kb/create
 ```
 
 ### 请求参数
-
 |名称|位置|类型|必选|说明|
 |---|---|---|---|---|
 |name|query|string| 否 |none|
@@ -146,7 +140,6 @@ POST /kb/create
 |body|body|object| 否 |none|
 
 #### 前版本新增参数
-
 **_新增：均已设置默认值，以向下兼容 1.0_**
 
 - description：知识库描述
@@ -160,7 +153,6 @@ POST /kb/create
 - weights：混合检索，语义权重
 
 ### 返回示例
-
 ```json
 {
   "code": 0,
@@ -172,12 +164,12 @@ POST /kb/create
 
 
 
+
 ## GET 获取单个知识库详情（已兼容）
 
 GET /v1/kb/detail
 
 ### 请求参数
-
 |名称|位置|类型|必选|说明|
 |---|---|---|---|---|
 |kb_id|query|string| 否 |none|
@@ -224,7 +216,6 @@ GET /v1/kb/detail
 ```
 
 ### 返回数据结构
-
 |名称|类型|必选|约束|中文名|说明|
 |---|---|---|---|---|---|
 |» code|integer|true|none||none|
@@ -257,12 +248,12 @@ GET /v1/kb/detail
 
 
 
+
 ## POST 知识库更新（已兼容）
 
 POST /v1/kb/update
 
 ### 请求参数
-
 ```json
 {
   "avatar": "",
@@ -303,7 +294,6 @@ POST /v1/kb/update
 ```
 
 ### 新增参数 ----> **_均设置默认值向下兼容_**
-
 - weights：检索语义权重
 - top_k：召回文档片段数量
 - indexing_technique：索引方案
@@ -311,7 +301,6 @@ POST /v1/kb/update
 - score_threshold：召回阈值，不建议设置过高，rag领域，超过0.35就容易出现难以召回的情况，该值默认 0.25，非必要可无需调整
 
 ### 返回示例
-
 ```json
 {
   "code": 0,
@@ -359,7 +348,6 @@ POST /v1/kb/update
 ```
 
 ### 返回数据结构
-
 状态码 **200**
 
 |名称|类型|必选|约束|中文名|说明|
@@ -402,16 +390,11 @@ POST /v1/kb/update
 
 
 
-
-
-
-
 ## POST 知识库删除（已兼容）
 
 POST /v1/kb/rm
 
 ### 请求参数
-
 ```json
 {
   "kb_id": "998ff43836a911f09aaca68d932eca9a"
@@ -419,13 +402,11 @@ POST /v1/kb/rm
 ```
 
 ### 返回示例(v-1.0)
-
 ```json
 {}
 ```
 
 ### 返回示例(v-2.0) ----> **_新增示例说明_**
-
 - code = 0: 表示删除成功
 - code = -1：表示删除失败
 
@@ -440,16 +421,11 @@ POST /v1/kb/rm
 
 
 
-
-
-
-
 ## POST 召回测试（已兼容）
 
 POST /v1/chunk/retrieval_test
 
 ### 请求参数
-
 ```json
 {
   "similarity_threshold": 0.2,  // 不建议过高（超过0.35），0.2 是合适的
@@ -471,14 +447,12 @@ POST /v1/chunk/retrieval_test
 |body|body|object| 否 |none|
 
 ### 新增参数 ----> **_新增参数_**
-
 - top_k：召回的片段数量
 - score_threshold_enabled：召回阈值开关；默认 false,否则很难召回
 
 ### 返回示例
 
 #### 502 Response
-
 ```
 {}
 ```
@@ -488,7 +462,6 @@ POST /v1/chunk/retrieval_test
 |502|[Bad Gateway](https://tools.ietf.org/html/rfc7231#section-6.6.3)|none|Inline|
 
 #### 正常响应 ----> **_新增响应示例_**
-
 ```json
 {
 	"code": 0,
@@ -527,13 +500,11 @@ POST /v1/chunk/retrieval_test
 GET /v1/kb/5ba99c8236b811f08483e2281ab37f32/knowledge_graph
 
 ### 请求参数
-
 |名称|位置|类型|必选|说明|
 |---|---|---|---|---|
 |Username|header|string| 否 |none|
 
 ### 返回示例
-
 ```json
 {
   "code": 0,
@@ -550,7 +521,6 @@ GET /v1/kb/5ba99c8236b811f08483e2281ab37f32/knowledge_graph
 |200|[OK](https://tools.ietf.org/html/rfc7231#section-6.3.1)|none|Inline|
 
 ### 返回数据结构
-
 状态码 **200**
 
 |名称|类型|必选|约束|中文名|说明|
@@ -568,8 +538,6 @@ GET /v1/kb/5ba99c8236b811f08483e2281ab37f32/knowledge_graph
 
 
 
-
-
 # 研究院知识库/文件管理
 
 ## POST 文件上传（已兼容）
@@ -577,7 +545,6 @@ GET /v1/kb/5ba99c8236b811f08483e2281ab37f32/knowledge_graph
 POST /v1/document/upload
 
 ### 请求参数
-
 ```yaml
 kb_id: 5ba99c8236b811f08483e2281ab37f32
 file: file://C:\Users\CX\Desktop\内涝演示环境\城市生命线排水清单.xlsx
@@ -591,7 +558,6 @@ file: file://C:\Users\CX\Desktop\内涝演示环境\城市生命线排水清单.
 |» file|body|string(binary)| 否 |none|
 
 ### 新增参数 ----> **_新增参数_**
-
 - file_name: 命名上传的文档的名称
 - mode: 文档处理方式，默认 custom，也可以设置未 automatic，但是建议保持不动，参数已经设置完毕，aotu 模式可能会影响文档处理效果
 - separator: 文档分割标识符，如果有很明确的分割符号，可以主动指定，比如："=、\n等符号"，如果不明确，可以不填
@@ -600,9 +566,7 @@ file: file://C:\Users\CX\Desktop\内涝演示环境\城市生命线排水清单.
 - doc_form：文档处理方式：text_model（默认），qa_model
 - doc_language：qa_model时，指定需要的语言，默认为 Chinses
 
-
 ### 返回示例
-
 ```json
 {
   "code": 0,
@@ -631,13 +595,11 @@ file: file://C:\Users\CX\Desktop\内涝演示环境\城市生命线排水清单.
 ```
 
 ### 返回结果
-
 |状态码|状态码含义|说明|数据模型|
 |---|---|---|---|
 |200|[OK](https://tools.ietf.org/html/rfc7231#section-6.3.1)|none|Inline|
 
 ### 返回数据结构
-
 状态码 **200**
 
 |名称|类型|必选|约束|中文名|说明|
@@ -667,12 +629,10 @@ file: file://C:\Users\CX\Desktop\内涝演示环境\城市生命线排水清单.
 - api /document/status
 
 ### 参数说明
-
 - kb_id	body	string	是		指定的知识库唯一标识符
 - batch	body	string	是		本次文档处理的批次标识符
 
 ### 返回示例
-
 indexing_status 可以为：splitting/paused/waiting/indexing/error
 
 ```json
@@ -704,13 +664,11 @@ indexing_status 可以为：splitting/paused/waiting/indexing/error
 
 
 
-
 ## GET 文件查询（已兼容）
 
 GET /v1/document/list
 
 ### 请求参数
-
 |名称|位置|类型|必选|说明|
 |---|---|---|---|---|
 |page_size|query|string| 否 |none|
@@ -721,7 +679,6 @@ GET /v1/document/list
 |Username|header|string| 否 |none|
 
 ### 返回示例
-
 ```json
 {
   "code": 0,
@@ -765,13 +722,11 @@ GET /v1/document/list
 ```
 
 ### 返回结果
-
 |状态码|状态码含义|说明|数据模型|
 |---|---|---|---|
 |200|[OK](https://tools.ietf.org/html/rfc7231#section-6.3.1)|none|Inline|
 
 ### 返回数据结构
-
 状态码 **200**
 
 |名称|类型|必选|约束|中文名|说明|
@@ -812,19 +767,12 @@ GET /v1/document/list
 
 
 
-
-
-
-
 ## POST 文件解析（此接口dify中无法单独存在）
 
 ### 新增说明
-
 **_dify 不具备该接口，在上传文件时，dify必须执行文档的解析、嵌入、索引_**
 
-
 ### 请求参数
-
 POST /v1/document/run
 
 ```json
@@ -843,7 +791,6 @@ POST /v1/document/run
 |body|body|object| 否 |none|
 
 ### 返回示例
-
 ```json
 {
   "code": 0,
@@ -853,13 +800,11 @@ POST /v1/document/run
 ```
 
 ### 返回结果
-
 |状态码|状态码含义|说明|数据模型|
 |---|---|---|---|
 |200|[OK](https://tools.ietf.org/html/rfc7231#section-6.3.1)|none|Inline|
 
 ### 返回数据结构
-
 状态码 **200**
 
 |名称|类型|必选|约束|中文名|说明|
@@ -871,46 +816,39 @@ POST /v1/document/run
 
 
 
-
 ## GET 文件下载（新增）
 
 ### 研究院接口
-
 GET /v1/document/get/f48d71bc36b811f0b2c88aca13ba27e8
 
 #### 请求参数
-
 |名称|位置|类型|必选|说明|
 |---|---|---|---|---|
 |Username|header|string| 否 |none|
 
 #### 返回示例
-
 ```
 {}
 ```
 
 #### 返回结果
-
 |状态码|状态码含义|说明|数据模型|
 |---|---|---|---|
 |200|[OK](https://tools.ietf.org/html/rfc7231#section-6.3.1)|none|Inline|
 
 #### 返回数据结构
+...
 
 
 ### 本地下载接口(单文件下载)
-
 GET /document/get
 
 #### 参数要求
-
 - kb_id： 必填
 - document_id: 必填
 - download_dir： 下载路径，非必填
 
 #### 响应情况
-
 ```json
 {
 	"code": 0,
@@ -935,16 +873,13 @@ GET /document/get
 ```
 
 ### 文件下载接口（批量下载）
-
 GET /documents/batch-download
 
 #### 参数情况
-
 - kb_id： 知识库ID 必填
 - download_dir： 文件存储路径，非必填
 
 #### 响应结果
-
 ```json
 {
 	"code": 0,
@@ -989,8 +924,6 @@ GET /documents/batch-download
 
 
 
-
-
 ## POST 文件删除（已兼容）
 
 POST /v1/document/rm
@@ -1006,15 +939,12 @@ POST /v1/document/rm
 ```
 
 ### 请求参数
-
 |名称|位置|类型|必选|说明|
 |---|---|---|---|---|
 |Username|header|string| 否 |none|
 |body|body|object| 否 |none|
 
-
 ### 返回示例
-
 ```json
 {
   "code": 0,
@@ -1028,7 +958,6 @@ POST /v1/document/rm
 |200|[OK](https://tools.ietf.org/html/rfc7231#section-6.3.1)|none|Inline|
 
 ### 返回数据结构
-
 状态码 **200**
 
 |名称|类型|必选|约束|中文名|说明|
@@ -1041,20 +970,11 @@ POST /v1/document/rm
 
 
 
-
-
-
-
-
-
 ## POST 文档切片查询（已兼容）
 
 POST /v1/chunk/list
 
-### 请求参数
-
 ### 新增说明 ---> **_keywords 支持传入单个 str；也支持传入 [str1, str2, ...]_**
-
 ```json
 {
   "page": 1,
@@ -1065,14 +985,12 @@ POST /v1/chunk/list
 ```
 
 ### 请求参数
-
 |名称|位置|类型|必选|说明|
 |---|---|---|---|---|
 |Username|header|string| 否 |none|
 |body|body|object| 否 |none|
 
 ### 返回示例
-
 ```json
 {
   "code": 0,
@@ -1135,13 +1053,11 @@ POST /v1/chunk/list
 ```
 
 ### 返回结果
-
 |状态码|状态码含义|说明|数据模型|
 |---|---|---|---|
 |200|[OK](https://tools.ietf.org/html/rfc7231#section-6.3.1)|none|Inline|
 
 ### 返回数据结构
-
 状态码 **200**
 
 |名称|类型|必选|约束|中文名|说明|
@@ -1198,19 +1114,15 @@ POST /v1/chunk/list
 ## 指定文档切片的删除 ---> **_新增接口_**
 
 ### base url
-
 - 请求方法：delete
 - api /chunk/paragraph/rm
 
 ### params 
-
 - kb_id	必填；数据库 ID
 - doc_id	必填；文档 ID； 该文档必须存在于指定的数据库中
 - para_id	必填；需要被删除的段落 ID
 
-
 ### 响应结构
-
 - code = 0: 删除成功
 - code = -1： 删除失败
 
@@ -1224,15 +1136,16 @@ POST /v1/chunk/list
 
 
 
+
+
+
 ## 向指定文档切片中添加信息 ---> **_新增接口_**
 
 ### base url
-
 - post
 - /chunk/paragraph/add
 
 ### 参数列表
-
 - kb_id	是（常规参数）	知识库 ID
 - doc_id	是（常规参数）	文档 ID，要求文档必须在指定的数据库内
 - content	是	文本内容
@@ -1241,7 +1154,6 @@ POST /v1/chunk/list
 ### 响应情况
 
 #### text_model 知识库
-
 ```json
 {
     "data": [
@@ -1260,7 +1172,6 @@ POST /v1/chunk/list
 ```
 
 #### qa_model 知识库
-
 ```json
 {
     "data": [
@@ -1280,19 +1191,40 @@ POST /v1/chunk/list
 
 
 
+## 知识库中整篇文档的启停（ShiWu新增）
+
+POST /document/toggle
+
+> 备注：功能已经根据 console api 开发完毕，绕过权限检验
+
+### 请求参数
+```json
+- kb_id 文档ID 必填
+- doc_id 文档ID 必填
+- action  enable or disable，必填，且必须是两者中的一个
+- token 控制台后台服务 token
+```
+
+### 响应示例
+```json
+{
+	"code": 0,
+	"data": "",
+	"elapsed_s": 0.0759,
+	"message": "Document disable successful!"
+}
+```
+
+
+## POST 文档切片状态切换(ShuiWu)
 
 
 
-
-
-
-
-## POST 文档切片状态切换(目前未开发)
+## POST 文档切片状态切换(YJY)
 
 POST /v1/chunk/switch
 
 ### 请求参数
-
 ```json
 {
   "available_int": 0,
@@ -1304,25 +1236,21 @@ POST /v1/chunk/switch
 ```
 
 ### 请求参数
-
 |名称|位置|类型|必选|说明|
 |---|---|---|---|---|
 |Username|header|string| 否 |none|
 |body|body|object| 否 |none|
 
 ### 返回示例
-
 ```
 {}
 ```
 
 ### 返回结果
-
 |状态码|状态码含义|说明|数据模型|
 |---|---|---|---|
 |503|[Service Unavailable](https://tools.ietf.org/html/rfc7231#section-6.6.4)|none|Inline|
 
-### 返回数据结构
 
 
 
@@ -1330,17 +1258,113 @@ POST /v1/chunk/switch
 
 
 
+# 水务知识库/模型选择
 
+## 获取模型列表
+
+GET /models/list
+
+### 模型参数
+- model_type： llm、text-embedding、rerank
+
+### 响应示例
+```json
+{
+	"code": 0,
+	"data": [
+		{
+			"icon_large": {
+				"en_US": "/console/api/workspaces/ff9c6ae1-527b-40df-9739-1da76ca40039/model-providers/langgenius/ollama/ollama/icon_large/en_US",
+				"zh_Hans": "/console/api/workspaces/ff9c6ae1-527b-40df-9739-1da76ca40039/model-providers/langgenius/ollama/ollama/icon_large/zh_Hans"
+			},
+			"icon_small": {
+				"en_US": "/console/api/workspaces/ff9c6ae1-527b-40df-9739-1da76ca40039/model-providers/langgenius/ollama/ollama/icon_small/en_US",
+				"zh_Hans": "/console/api/workspaces/ff9c6ae1-527b-40df-9739-1da76ca40039/model-providers/langgenius/ollama/ollama/icon_small/zh_Hans"
+			},
+			"label": {
+				"en_US": "Ollama",
+				"zh_Hans": "Ollama"
+			},
+			"models": [
+				{
+					"deprecated": false,
+					"features": [
+						"structured-output"
+					],
+					"fetch_from": "customizable-model",
+					"label": {
+						"en_US": "qwen3:4b",
+						"zh_Hans": "qwen3:4b"
+					},
+					"load_balancing_enabled": false,
+					"model": "qwen3:4b",
+					"model_properties": {
+						"context_size": 4096,
+						"mode": "chat"
+					},
+					"model_type": "llm",
+					"status": "active"
+				},
+				{
+					"deprecated": false,
+					"features": [
+						"structured-output"
+					],
+					"fetch_from": "customizable-model",
+					"label": {
+						"en_US": "mistral:latest",
+						"zh_Hans": "mistral:latest"
+					},
+					"load_balancing_enabled": false,
+					"model": "mistral:latest",
+					"model_properties": {
+						"context_size": 4096,
+						"mode": "chat"
+					},
+					"model_type": "llm",
+					"status": "active"
+				}
+			],
+			"provider": "langgenius/ollama/ollama",
+			"status": "active",
+			"tenant_id": "ff9c6ae1-527b-40df-9739-1da76ca40039"
+		}
+	],
+	"elapsed_s": 0.0966,
+	"message": "Get models successful!"
+}
+```
+
+## 设置默认模型
+
+<!-- - POST /models/set_default -->
+- POST /user/set_tenant_info  // 兼容路由
+
+### 请求参数
+- model_type： llm、text-embedding、rerank
+- provider： 模型供应商
+- model： 模型名称
+
+> 备注：需要通过模型列表接口查询到已经接入的模型信息，根据模型信息配置该接口的上述三个参数
+
+### 响应结果
+```json
+{
+	"code": 0,
+	"data": "",
+	"elapsed_s": 0.3235,
+	"message": "Set default model successful!"
+}
+```
 
 
 # 研究院知识库/模型
 
-## POST 选择模型（dify原生不具备，需要二开，目前不具备）
+## POST 选择模型
 
 POST /v1/user/set_tenant_info
 
 ### 请求参数
-
 ```json
 {
   "asr_id": "",
@@ -1356,14 +1380,12 @@ POST /v1/user/set_tenant_info
 ```
 
 ### 请求参数
-
 |名称|位置|类型|必选|说明|
 |---|---|---|---|---|
 |UserName|header|string| 否 |none|
 |body|body|object| 否 |none|
 
 ### 返回示例
-
 ```json
 {
   "code": 0,
@@ -1377,7 +1399,6 @@ POST /v1/user/set_tenant_info
 |200|[OK](https://tools.ietf.org/html/rfc7231#section-6.3.1)|none|Inline|
 
 ### 返回数据结构
-
 状态码 **200**
 
 |名称|类型|必选|约束|中文名|说明|
@@ -1391,13 +1412,16 @@ POST /v1/user/set_tenant_info
 
 
 
+## 选择知识库（水务）
 
-## POST 选择知识库（dify不具备，dify也没有单独选择知识库的需求）
+...
+
+
+## 选择知识库（YJY）
 
 POST /v1/dialog/set
 
 ### 求参数
-
 ```json
 {
   "icon": "",
@@ -1443,7 +1467,6 @@ POST /v1/dialog/set
 |body|body|object| 否 |none|
 
 ### 返回示例
-
 ```json
 {
   "code": 0,
@@ -1496,7 +1519,6 @@ POST /v1/dialog/set
 |200|[OK](https://tools.ietf.org/html/rfc7231#section-6.3.1)|none|Inline|
 
 ### 返回数据结构
-
 |名称|类型|必选|约束|中文名|说明|
 |---|---|---|---|---|---|
 |» code|integer|true|none||none|
@@ -1538,18 +1560,16 @@ POST /v1/dialog/set
 
 
 
-## GET 获取模型列表（目前不具备，需要看如何二开）
+## 获取模型列表（YJY）
 
 GET /v1/llm/my_llms
 
 ### 请求参数
-
 |名称|位置|类型|必选|说明|
 |---|---|---|---|---|
 |UserName|header|string| 否 |none|
 
 ### 返回示例
-
 ```json
 {
   "code": 0,
@@ -1624,7 +1644,6 @@ GET /v1/llm/my_llms
 |200|[OK](https://tools.ietf.org/html/rfc7231#section-6.3.1)|none|Inline|
 
 ### 返回数据结构
-
 状态码 **200**
 
 |名称|类型|必选|约束|中文名|说明|
@@ -1674,13 +1693,220 @@ GET /v1/llm/my_llms
 
 
 
+# 水务对话模型
+
+## 基于知识库的会话
+
+POST /conversation/completion
+
+### 参数说明
+
+- user_id: 用户ID，必填
+- message： 信息，必填
+- dataset_id：如果需要对话过程中使用知识库，则必须指定此ID
+- conversation_id：会话ID，用于上下文对话，新会话可没有此ID
+- streaming：流式 or 阻塞，默认 False
+
+### 返回示例
+
+```json
+{
+	"code": 0,
+	"data": {
+		"answer": "好的，我现在要回答用户的问题：“dorak大概是多大年龄呢？”首先，我需要查看用户提供的参考资料，看看是否有关于Dorak年龄的信息。\n\n参考资料中，Dorak和Emon的故事发生在绿谷镇的绿荫小学。他们一起上学、玩耍，参加学校活动，比如才艺表演。这些信息表明他们可能是小学生，但具体年龄并未提到。没有明确的年龄数字，也没有其他线索可以推断年龄。\n\n因此，我需要告诉用户，参考资料中没有提供Dorak的年龄信息。同时，根据我的知识，通常小学生的年龄范围在6到12岁之间，但这只是一个大致的估计，不是基于参考资料的具体信息。\n\n最后，我应该礼貌地回复用户，说明无法确定Dorak的具体年龄，但可以提供一些一般性的信息。\n</think>\n\nDorak 的具体年龄在提供的参考资料中没有明确提到。根据上下文推测，Dorak 和 Emon 是在小学阶段相遇并成为好朋友，因此 Dorak 的年龄可能在小学生阶段，大约在 6 到 12 岁之间。",
+		"conversation_id": "3e4c556b-3600-4ca5-9a87-4f7d4b830fa7",
+		"dataset_used": "518c4657-afd9-4095-911a-8f53ed0cd903",
+		"knowledge_enhanced": true,
+		"message_id": "c4262da5-4d40-4c83-9abe-4adf83e85dde"
+	},
+	"elapsed_s": 18.3739,
+	"message": "Chat with dataset successful!"
+}
+```
+
+## 会话管理接口/创建新会话(基础会话，无知识库)
+
+POST /chat
+
+### 参数说明
+
+#### 参数示例
+```json
+{
+    "user_id": "test_10_04",
+    "message": "太阳的质量会损失质量，对吗？",
+    "conversation_id": "7efd6678-c375-4ec4-9c92-f431a01f8fc3",
+    "streaming": false
+}
+```
+
+#### 解释说明
+1. user_id： 用户ID，必须唯一
+2. message: 每一轮对话用户发送的消息
+3. conversation_id：当前用户下的会话ID，
+   3.1 如果是首轮对话，那么此时该字段为空，服务将会自动为该用户的当前对话创建会话ID；并在响应结束后返回（参考返回结果示例）
+   3.2 如果出现用户接着其以前的某次对话继续对话，那就要传入这个会话ID，此时这个参数为必填；服务内部会拼接用户的历史对话数据信息继续执行对话；
+   3.3 模型能够使用的历史会话的长度，受模型最大支持的 max tokens 影响，并非无限长；
+4. streaming：流式返回，开发测试时设置默认为 false，生产时建议设置为 true
+
+### 返回示例
+
+```json
+{
+	"code": 0,
+	"data": {
+		"answer": ".....",
+		"conversation_id": "7efd6678-c375-4ec4-9c92-f431a01f8fc3",
+		"is_new_conversation": false,
+		"message_id": "0d104172-075c-4e20-abed-e5dba41d61ce"
+	},
+	"elapsed_s": 73.635,
+	"message": "Chat successful!"
+}
+```
+#### 字段解释说明
+1. data.answer: 模型返回的内容在这个字段
+2. data.conversation_id: 当前会话的ID
+
+## 会话管理操作相关 API
+
+### USER_ID下的所有会话列表
+
+GET /conversationslist
+
+#### 参数说明
+
+```json
+user_id: 查询哪个用户产生的会话列表
+limit: 默认20
+```
+
+#### 返回示例
+
+```json
+{
+	"code": 0,
+	"data": {
+		"conversations": [
+			{
+				"created_at": 1753154081,
+				"id": "7efd6678-c375-4ec4-9c92-f431a01f8fc3",
+				"inputs": {},
+				"introduction": "",
+				"name": "你好，汉威，我们开始对话的过程",
+				"status": "normal",
+				"updated_at": 1753154328
+			},
+      ... // 如果有更多会话，同上相同的结构，为避免繁复神略
+		],
+		"has_more": false,
+		"limit": 20,
+		"user_id": "test_10_04"
+	},
+	"elapsed_s": 0.0736,
+	"message": "Get conversations successful!"
+}
+```
+
+### USER_ID任意会话下对话历史查询与数据导出
+
+GET /conversation/history
+
+#### 参数详情
+```
+user_id: 用户ID，必填
+conversation_id： 会话ID，必填
+limit：默认20，返回第一页下的对话历史，无需改动
+export_json：导出数据，默认为 false
+first_id：分页标识，默认是空
+```
+
+#### 重点参数解释说明 - 以下情况适用于 export_json = false
+1. limit： 每一页返回的对话数量
+2. **first_id**：第一次请求，可以不传 first_id，获取最新的 20 条消息
+3. 当用户觉得其仍需要进一步查看更多对话历史时，需要传入当前返回的20条信息中时间最早的那一个 message_id 到这个 first_id 字段，那么再次请求，就会再次返回更早的20条信息。
+4. message_id 会在返回中显示，具体参考响应示例
+
+> 返回的数据简单直接，适合前端滚动加载，方便用户持续翻找旧时对话历史
+
+#### 重点参数解释说明 - 以下情况适用于 export_json = true
+1. 此时为数据导出情况
+2. 此时 limit 参数和 first_id 参数都将会被忽略
+3. 后台会自动循环分页，直到左右的数据查询完毕，并拼装完整的 json 返回
+
+> 返回的结果就是所有的对话数据；但是该结果不会自动存储在服务器，需要后续指定自己的存储过程
+
+#### 返回示例
+
+> 省略了模型响应的内容，即模型 answer 字段；
+> 如需存储，直接根据需要解析这个json或者直接存储该 json，即完成数据导出功能
+
+```json
+{
+	"code": 0,
+	"data": {
+		"conversation_data": {
+			"conversation_id": "7efd6678-c375-4ec4-9c92-f431a01f8fc3",
+			"has_more": false,
+			"message_count": 3,
+			"messages": [
+				{
+					"agent_thoughts": [],
+					"answer": " 哈罗， Hanwei! 很高兴与您交流！...",
+					"conversation_id": "7efd6678-c375-4ec4-9c92-f431a01f8fc3",
+					"created_at": 1753154081,
+					"created_date": "2025-07-22 03:14:41",
+					"feedback": null,
+					"inputs": {},
+					"message_files": [],
+					"message_id": "06d4c9bd-1f69-45e4-87d1-6c9a5634292d",
+					"query": "halo，你好。我是汉威，我们开始对话，你后续的对话都要以我的名字开头",
+					"retriever_resources": []
+				},
+				{
+					"agent_thoughts": [],
+					"answer": "好，太阳的形成。...",
+					"conversation_id": "7efd6678-c375-4ec4-9c92-f431a01f8fc3",
+					"created_at": 1753154197,
+					"created_date": "2025-07-22 03:16:37",
+					"feedback": null,
+					"inputs": {},
+					"message_files": [],
+					"message_id": "5001a8fc-8735-466c-8de1-f4ad79cb4062",
+					"query": "告诉我太阳形成",
+					"retriever_resources": []
+				},
+				{
+					"agent_thoughts": [],
+					"answer": "嗯，太阳的诞生会损失质量...",
+					"conversation_id": "7efd6678-c375-4ec4-9c92-f431a01f8fc3",
+					"created_at": 1753154328,
+					"created_date": "2025-07-22 03:18:48",
+					"feedback": null,
+					"inputs": {},
+					"message_files": [],
+					"message_id": "0d104172-075c-4e20-abed-e5dba41d61ce",
+					"query": "太阳的诞生会损失质量，对吗？",
+					"retriever_resources": []
+				}
+			]
+		},
+		"export_info": {
+			"conversation_id": "7efd6678-c375-4ec4-9c92-f431a01f8fc3",
+			"export_date": "2025-07-22 05:19:50",
+			"export_timestamp": 1753161590,
+			"total_messages": 3,
+			"user_id": "test_10_04"
+		}
+	},
+	"elapsed_s": 0.0889,
+	"message": "Export conversation data successful!"
+}
+```
 
 
 
-
-
-
-# 研究院知识库/调用模型知识库（对话模块需要专门开发）
+# 研究院知识库/调用模型知识库
 
 ## POST 调用模型对话
 
@@ -1707,30 +1933,12 @@ POST /v1/conversation/completion
 ```
 
 ### 请求参数
-
 |名称|位置|类型|必选|说明|
 |---|---|---|---|---|
 |UserName|header|string| 否 |none|
 |body|body|object| 否 |none|
 
 ### 返回示例
-
-...
-
 |状态码|状态码含义|说明|数据模型|
 |---|---|---|---|
 |200|[OK](https://tools.ietf.org/html/rfc7231#section-6.3.1)|none|Inline|
-
-### 返回数据结构
-
-
-
-
-
-
-
-
-
-# 数据模型
-
-... ...
