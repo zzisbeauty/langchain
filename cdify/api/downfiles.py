@@ -23,18 +23,13 @@ def get_down_url():
 
 @downloadfiles.route(BASE_URL + '/documents/batch-download', methods=['GET'])  
 @timed_request
-def batch_download():  
+def batch_download():
     """批量下载知识库中的所有文档"""  
     param = request.args.to_dict()  
     dataset_id = param.get('kb_id', "")  
     download_dir = param.get('download_dir', "")  
-
     if not dataset_id:  
-        return {
-            'code': -1,  
-            'data': '',  
-            'info': '缺少必要参数: kb_id'  
-        } 
+        return {'code': -1, 'data': '', 'info': '缺少必要参数: kb_id'} 
 
     from cdify.dify_client.kbs_downdocs import batch_download_documents_from_dataset  
     response = batch_download_documents_from_dataset(dataset_id, download_dir)  

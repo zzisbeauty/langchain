@@ -79,11 +79,7 @@ def convert_dify_to_ragflow_structure4(dify_list, keywords=None, message="succes
     # 返回 ragflow 风格完整结构
     result = {
         "code": 0,
-        "data": {
-            "chunks": chunks,
-            "doc": {},
-            "total": len(chunks)
-        },
+        "data": {"chunks": chunks, "doc": {}, "total": len(chunks)},
         "message": message
     }
     return result

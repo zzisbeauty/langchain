@@ -36,7 +36,7 @@ all_blueprints = [
     downloadfiles,
     deldoc,
 
-    doc_toggle,
+    doc_toggle, # 文档启停， 对应 yjy change_status 控制文档状态
     model_select,
 
     chat_bp,

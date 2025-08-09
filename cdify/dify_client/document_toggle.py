@@ -101,8 +101,7 @@
 # ===================== function - kernel - 3
 
 # cdify/dify_client/document_toggle.py  
-import requests  
-import json   
+import requests
   
 from cdify.utils.config import *
 from cdify.utils.loggers import logger
@@ -132,35 +131,67 @@ def doc_toggle_status(dataset_id: str, document_id: str, action: str):
 
 
 
-# 正式 - 必须模拟一次登录，来获取最新的控制台后台 token
-import requests
+# # 正式 - 必须模拟一次登录，来获取最新的控制台后台 token
+# import requests
 
-# 1. 登录获取 Token
-def get_console_token(email, password):
-    url = SERVER_URL + "/console/api/workspaces/token"
-    data = {
-        "email": email,
-        "password": password
-    }
-    response = requests.post(url, json=data)
-    if response.status_code == 200:
-        return response.json()["access_token"]
-    else:
-        raise Exception("登录失败", response.text)
+# # 1. 登录获取 Token
+# def get_console_token(email, password):
+#     url = SERVER_URL + "/console/api/workspaces/token"
+#     data = {
+#         "email": email,
+#         "password": password
+#     }
+#     response = requests.post(url, json=data)
+#     if response.status_code == 200:
+#         return response.json()["access_token"]
+#     else:
+#         raise Exception("登录失败", response.text)
 
-# 2. 启用文档
-def enable_document(token, dataset_id, document_id):
-    url = SERVER_URL + f"/console/api/datasets/{dataset_id}/documents/status/enable/batch"
-    params = {"document_id": document_id}
-    headers = {
-        "Authorization": f"Bearer {token}"
-    }
-    response = requests.patch(url, headers=headers, params=params)
-    if response.status_code == 200:
-        print("文档启用成功")
-    else:
-        print("启用失败", response.status_code, response.text)
+# # 2. 启用文档
+# def enable_document(token, dataset_id, document_id):
+#     url = SERVER_URL + f"/console/api/datasets/{dataset_id}/documents/status/enable/batch"
+#     params = {"document_id": document_id}
+#     headers = {
+#         "Authorization": f"Bearer {token}"
+#     }
+#     response = requests.patch(url, headers=headers, params=params)
+#     if response.status_code == 200:
+#         print("文档启用成功")
+#     else:
+#         print("启用失败", response.status_code, response.text)
 
-# 使用示例
-# token = get_console_token("admin@example.com", "your_password")
-# enable_document(token, "33f96db6-5515-4da1-ac2c-a56659e7d746", "39ea732d-f58e-4944-bc68-087ac81e3489")
+# # 使用示例
+# # token = get_console_token("admin@example.com", "your_password")
+# # enable_document(token, "33f96db6-5515-4da1-ac2c-a56659e7d746", "39ea732d-f58e-4944-bc68-087ac81e3489")
+
+
+
+def chunk_toggle_status(dataset_id, document_id, segment_ids, action):  
+    """  
+    调用 Dify 文档片段启停 API  
+    Args:  
+        dataset_id: 知识库ID  
+        document_id: 文档ID  
+        segment_ids: 片段ID列表
+        action: enable 或 disable  
+    Returns:  
+        dict: 包含 success 和 error 字段的响应  
+    """
+
+    try:  
+        # 构建查询参数  
+        query_params = '&'.join([f'segment_id={seg_id}' for seg_id in segment_ids])  
+
+        # 构建请求URL  
+        url = f"{SERVER_BASE_URL_CONSOLE}/datasets/{dataset_id}/documents/{document_id}/segment/{action}?{query_params}"  
+                    
+        # 发送PATCH请求  
+        response = requests.patch(url, headers=db_hearders_console)  
+          
+        if response.status_code == 200:  
+            return {'success': True, 'data': response.json()}  
+        else:  
+            return {'success': False, 'error': f'API call failed with status {response.status_code}: {response.text}'}  
+              
+    except Exception as e:  
+        return {'success': False, 'error': str(e)}

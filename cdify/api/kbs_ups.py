@@ -1,70 +1,156 @@
-from flask import Blueprint, request
+from flask import Blueprint, request, jsonify
 from cdify.utils.config import *
 from cdify.utils.generals import *
 from cdify.utils.decorators import timed_request
-
+from werkzeug.utils import secure_filename
 
 kbs_kbup = Blueprint('kbs_kbup', __name__)
 
+# # 只支持本地文件的方案
+# @kbs_kbup.route(BASE_URL + '/document/upload', methods=['POST'])
+# @timed_request
+# def insert_type2db():
+#     data = request.get_data()
+#     json_data = json.loads(data.decode("utf-8"))
+#     dataset_id = json_data.get('kb_id','')
+#     file_path = json_data.get('file','')
+#     file_name = json_data.get('file_name','')
+#     if not dataset_id:
+#         return  {'code': -1, 'data': "", 'message': '请指定知识库ID'}
+#     try:
+#         _ = open(file_path,'rb').close()
+#     except:
+#         return  {'code': -1, 'data': "", 'message': '文件读取失败，检查文件路径'}
+#     if not file_name:
+#         file_name = get_filename(file_path=file_path)
+
+#     mode = json_data.get('mode','custom')  # automatic
+#     separator = json_data.get('separator', '\n')
+#     max_tokens = json_data.get('max_tokens', 1000)
+#     remove_urls_emails = json_data.get('remove_urls_emails', True)
+#     indexing_technique = json_data.get('indexing_technique', 'high_quality')
+#     doc_form = json_data.get('doc_form', 'text_model')  # 此模式为默认； 还有 qa_model 模式
+#     # if doc_form == 'qa_model':
+#     doc_language = json_data.get('doc_language', 'Chinese')
+
+#     data_json = {
+#         "indexing_technique": indexing_technique,
+#         'doc_form': doc_form,
+#         'doc_language': doc_language,
+#         "process_rule": {
+#             "rules": {
+#                 "pre_processing_rules": [
+#                     {"id": "remove_extra_spaces", "enabled": True},
+#                     {"id": "remove_urls_emails", "enabled": remove_urls_emails}
+#                 ],
+#                 "segmentation": {
+#                     "separator": separator,
+#                     "max_tokens": max_tokens
+#                 }
+#             },
+#             "mode": mode
+#         }
+#     }
+#     data_json = json.dumps(data_json)
+#     from cdify.dify_client.kbs_ups import upload_file_with_metadata
+#     response = upload_file_with_metadata(db_id=dataset_id, file_name=file_name, file_path=file_path, data_json=data_json)
+#     if response.status_code != 200:
+#         return {'status_code': -1, 'data': "",  'info': '导入数据失败，请检查参数或和开发联调'}
+#     temp_return = {'status_code': 0, 'data': response.text,  'info': f'导入FILE数据到知识库 {dataset_id} 成功!'}
+#     # return temp_return
+
+#     # from cdify.api.clean_response import wrap_insert_file_response
+#     # return wrap_insert_file_response(temp_return)
+#     from cdify.api.tls_clean_response import convert_dify_upload_response_to_ragflow_format
+#     return convert_dify_upload_response_to_ragflow_format(temp_return)
+
+import os
+import json
+import tempfile
+from werkzeug.utils import secure_filename
 
 
 @kbs_kbup.route(BASE_URL + '/document/upload', methods=['POST'])
 @timed_request
 def insert_type2db():
-    data = request.get_data()
-    json_data = json.loads(data.decode("utf-8"))
-    dataset_id = json_data.get('kb_id','')
-    file_path = json_data.get('file','')
-    file_name = json_data.get('file_name','')
-    if not dataset_id:
-        return  {'code': -1, 'data': "", 'message': '请指定知识库ID'}
     try:
-        _ = open(file_path,'rb').close()
-    except:
-        return  {'code': -1, 'data': "", 'message': '文件读取失败，检查文件路径'}
-    if not file_name:
-        file_name = get_filename(file_path=file_path)
+        dataset_id = request.form.get('kb_id')
+        if not dataset_id:
+            return jsonify({'code': -1, 'message': '缺少 kb_id'}), 400
+        if 'file' not in request.files:
+            return jsonify({'code': -1, 'message': '缺少 file 字段'}), 400        
+        
+        # 确定上传的文件名
+        file_obj = request.files['file']
+        file_name = file_obj.filename
+        print('--------------------------------------------------',file_name)
+        if not os.path.splitext(file_name)[1] and file_obj.filename:  
+            original_ext = os.path.splitext(file_obj.filename)[1]  
+            file_name = file_name + original_ext  
+        # print(f"处理后的文件名: {file_name}")  
 
-    mode = json_data.get('mode','custom')  # automatic
-    separator = json_data.get('separator', '\n')
-    max_tokens = json_data.get('max_tokens', 1000)
-    remove_urls_emails = json_data.get('remove_urls_emails', True)
-    indexing_technique = json_data.get('indexing_technique', 'high_quality')
-    doc_form = json_data.get('doc_form', 'text_model')  # 此模式为默认； 还有 qa_model 模式
-    # if doc_form == 'qa_model':
-    doc_language = json_data.get('doc_language', 'Chinese')
+        # # 保存文件到临时目录
+        # filename = secure_filename(file_name)
+        # temp_dir = tempfile.gettempdir()
+        # temp_file_path = os.path.join(temp_dir, filename)
+        # file_obj.save(temp_file_path)
+        file_content = file_obj.read()
 
-    data_json = {
-        "indexing_technique": indexing_technique,
-        'doc_form': doc_form,
-        'doc_language': doc_language,
-        "process_rule": {
-            "rules": {
-                "pre_processing_rules": [
-                    {"id": "remove_extra_spaces", "enabled": True},
-                    {"id": "remove_urls_emails", "enabled": remove_urls_emails}
-                ],
-                "segmentation": {
-                    "separator": separator,
-                    "max_tokens": max_tokens
-                }
-            },
-            "mode": mode
+        # 其他参数
+        mode = request.form.get('mode', 'custom')
+        separator = request.form.get('separator', '\n')
+        max_tokens = int(request.form.get('max_tokens', 1000))
+        remove_urls_emails = request.form.get('remove_urls_emails', 'true').lower() == 'true'
+        indexing_technique = request.form.get('indexing_technique', 'high_quality')
+        doc_form = request.form.get('doc_form', 'text_model')
+        doc_language = request.form.get('doc_language', 'Chinese')
+
+        # 构造 data_json
+        data_json = {
+            "indexing_technique": indexing_technique,
+            'doc_form': doc_form,
+            'doc_language': doc_language,
+            "process_rule": {
+                "rules": {
+                    "pre_processing_rules": [
+                        {"id": "remove_extra_spaces", "enabled": True},
+                        {"id": "remove_urls_emails", "enabled": remove_urls_emails}
+                    ],
+                    "segmentation": {
+                        "separator": separator,
+                        "max_tokens": max_tokens
+                    }
+                },
+                "mode": mode
+            }
         }
-    }
-    data_json = json.dumps(data_json)
+        data_json_str = json.dumps(data_json, ensure_ascii=False)
 
-    from cdify.dify_client.kbs_ups import upload_file_with_metadata
-    response = upload_file_with_metadata(db_id=dataset_id, file_name=file_name, file_path=file_path, data_json=data_json)
-    if response.status_code != 200:
-        return {'status_code': -1, 'data': "",  'info': '导入数据失败，请检查参数或和开发联调'}
-    temp_return = {'status_code': 0, 'data': response.text,  'info': f'导入FILE数据到知识库 {dataset_id} 成功!'}
-    # return temp_return
+        from cdify.dify_client.kbs_ups import upload_file_with_metadata
+        response = upload_file_with_metadata(
+            db_id=dataset_id, 
+            file_name=file_name,
+            # file_path=temp_file_path, # 不做文件的临时存储
+            file_path=file_content, # 直接传输内容
+            data_json=data_json_str
+        )
+        if response.status_code != 200:
+            return jsonify({'status_code': -1, 'data': "", 'info': '导入数据失败，请检查参数'}), 500
 
-    # from cdify.api.clean_response import wrap_insert_file_response
-    # return wrap_insert_file_response(temp_return)
-    from cdify.api.tls_clean_response import convert_dify_upload_response_to_ragflow_format
-    return convert_dify_upload_response_to_ragflow_format(temp_return)
+        temp_return = {'status_code': 0,'data': response.text,'info': f'导入FILE数据到知识库 {dataset_id} 成功!'}
+        # return temp_return
+        from cdify.api.tls_clean_response import convert_dify_upload_response_to_ragflow_format
+        return convert_dify_upload_response_to_ragflow_format(temp_return)
+
+    except Exception as e:
+        print(f"❌ 请求处理失败: {str(e)}")
+        return jsonify({'code': -1, 'message': f'服务器内部错误: {str(e)}'}), 500
+
+
+
+
+
+
 
 
 
@@ -84,6 +170,7 @@ def insert_txt2db():
     file_name = json_data.get('file_name','')
     text = json_data.get('text','')
     dataset_id = json_data.get('kb_id','')
+
     # /////////////////// test parameters
     # json_data['dataset_id'] = 'd6142a1d-ff1b-470c-84b8-9b6f570f95d9' # test
     # file_name = "鲁迅杂文-《且介亭杂文》-long-16-58", # test

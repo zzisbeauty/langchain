@@ -24,10 +24,9 @@ def get_db_doc_list_api():
         docname = doc['name']
         docform = doc['doc_form']
         docs_dict[dataset_id].append({docid: [docname, docform]})
-
     temp_return = {'code': 0, 'data': docs_dict, 'message': f'获取知识库 Doc List Success !'}
     # return temp_return
-
+    
     from cdify.api.tls_clean_response import convert_dify_doc_list_response_to_ragflow_format
     return convert_dify_doc_list_response_to_ragflow_format(temp_return)
 
@@ -36,7 +35,7 @@ def get_db_doc_list_api():
 
 
 
-# 进一步获取 dock 的 chunk result
+# 进一步获取 doc 的 chunk result # 简单分页模式
 @kbs_kbdoclist.route(BASE_URL + '/chunk/list', methods=['GET'])
 @timed_request
 def get_db_doc_paragraphs_list():
@@ -44,11 +43,16 @@ def get_db_doc_paragraphs_list():
     dataset_id = param.get('kb_id','')
     document_id = param.get('doc_id', '')
     keywords = param.get('keywords', '')
+    page = param.get('page', 1)
+    limit = param.get('size', 100)
     if not dataset_id or not document_id:
         return {'code': -1, 'data': "", 'message': '参数没有传递完整，请补全参数！'}
     
     from cdify.dify_client.kbs_kbdoclist import get_db_doc_paragraphs_list
-    response = get_db_doc_paragraphs_list(dataset_id, doc_id=document_id)
+    response = get_db_doc_paragraphs_list(
+        dataset_id, doc_id=document_id, 
+        page=page, limit=limit  # 分页参数
+    )
     if response.status_code != 200:
         return {'code': -1, 'data': "", 'message': '获取知识库 Doc List Failed ！'}
 
@@ -58,25 +62,6 @@ def get_db_doc_paragraphs_list():
         return convert_dify_to_ragflow_structure4(parasLits,keywords)
     except:
         return {'code': -1, 'data': "",  'message': '获取知识库 Doc List Failed ！'}
-
-    result = {}
-    result[dataset_id + ' | ' + document_id] = [] # key: db_id | doc_id； 复合 key 值
-    for para in parasLits:
-        para_content = para['content']
-        para_tags = para['keywords']
-        para_id = para['id']
-        result[dataset_id + ' | ' + document_id].append([para_content, para_tags, para_id])
-
-    temp_return = {
-        'code': 0, 'data': result,
-        'message': f'获取知识库 DocID 的分段列表 Success ！!'
-    }
-    # return temp_return
-    # from cdify.fast_response_data_clean import process_response
-    # return process_response(temp_return,keywords)
-    # from cdify.fast_response_data_clean import transform_response_data
-    # return transform_response_data(temp_return, keywords)
-    return parasLits
 
 
 

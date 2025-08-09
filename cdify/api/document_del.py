@@ -5,6 +5,9 @@ from cdify.utils.decorators import timed_request
  
 deldoc = Blueprint('deldoc', __name__)
 
+"""
+删除指定知识库中的指定文档
+"""
 
 @deldoc.route(BASE_URL + '/document/rm', methods=['DELETE'])
 @timed_request
@@ -17,5 +20,5 @@ def request_db_info_with_dbid():
     from cdify.dify_client.document_del import docdelete
     response = docdelete(dataset_id, document_id)
     if 'false' in response:
-        return {'code': -1, 'data': "", 'message': 'Delete document failed, 可能的原因是请求知识库信息失败, 从检查Agent网络开始',}
+        return {'code': -1, 'data': "", 'message': 'Delete document failed, 可能的原因是请求知识库信息失败, 从检查网络开始',}
     return {'code': 0, 'data': "", 'message': 'Delete DB successful!'}
