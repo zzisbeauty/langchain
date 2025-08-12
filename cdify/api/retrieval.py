@@ -32,7 +32,7 @@ def retrieval_db():
     score_threshold_enabled = json_data.get('score_threshold_enabled', False) # 默认保持 false，否则很难召回
     score_threshold = json_data.get('similarity_threshold', 0.2)  # 0.1 ~ 0.3  低一点好召回
 
-    top_k = json_data.get('top_k', 5)
+    top_k = json_data.get('top_k', 3)
 
     # todo 以如下哪个参数结构为准待确定 - 验证（一）
     # params = {

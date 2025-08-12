@@ -13,24 +13,23 @@ def get_db_doc_list_api():
     dataset_id = param.get('kb_id','')
 
     from cdify.dify_client.kbs_kbdoclist import get_db_doc_list
-    response = get_db_doc_list(dataset_id)
-    if response.status_code != 200:
-        return {'code': -1, 'data': "", 'message': '获取知识库 Doc List Failed ！'}
-    docs = json.loads(response.text)['data']
-    docs_dict = {}
-    docs_dict[dataset_id] = []
-    for doc in docs:
-        docid = doc['id']
-        docname = doc['name']
-        docform = doc['doc_form']
-        docs_dict[dataset_id].append({docid: [docname, docform]})
-    temp_return = {'code': 0, 'data': docs_dict, 'message': f'获取知识库 Doc List Success !'}
-    # return temp_return
-    
-    from cdify.api.tls_clean_response import convert_dify_doc_list_response_to_ragflow_format
-    return convert_dify_doc_list_response_to_ragflow_format(temp_return)
-
-
+    try:  
+        all_docs = get_db_doc_list(dataset_id)  
+        docs_dict = {}  
+        docs_dict[dataset_id] = []  
+        for doc in all_docs:  
+            docid = doc['id']  
+            docname = doc['name']  
+            docform = doc['doc_form']  
+            docs_dict[dataset_id].append({docid: [docname, docform]})  
+          
+        temp_return = {'code': 0, 'data': docs_dict, 'message': f'获取知识库 Doc List Success !'}  
+          
+        from cdify.api.tls_clean_response import convert_dify_doc_list_response_to_ragflow_format  
+        return convert_dify_doc_list_response_to_ragflow_format(temp_return)  
+          
+    except Exception as e:  
+        return {'code': -1, 'data': "", 'message': f'获取知识库 Doc List Failed: {str(e)}'}  
 
 
 

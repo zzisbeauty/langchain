@@ -1,20 +1,17 @@
-import json  
-import requests  
-from typing import List, Optional, Dict, Any 
 from cdify.utils.config import *
 from cdify.utils.decorators import timed_request
 from flask import Blueprint, request  
 
 
 
-""" 基于知识库的对话接口 """
+""" 基于知识库的对话接口, 或者拓展其他外部三方 API 的对话。目前此接口是无用的"""
 
 
 # routes/dynamic_knowledge_chat_routes.py  
-dynamic_chat_bp = Blueprint('dynamic_chat', __name__)  
+chat_kg = Blueprint('dynamic_chat', __name__)  
 # BASE_URL = '/api/v1'  
   
-@dynamic_chat_bp.route(BASE_URL + '/conversation/completion', methods=['POST'])  
+@chat_kg.route(BASE_URL + '/conversation/completion', methods=['POST'])  
 @timed_request  
 def chat_with_dynamic_dataset():  
     """动态指定知识库的聊天接口"""  

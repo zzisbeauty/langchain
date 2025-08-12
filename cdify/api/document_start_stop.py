@@ -1,6 +1,5 @@
 from flask import Blueprint, request  
 import json  
-import requests  
 from cdify.utils.config import *  
 from cdify.utils.decorators import timed_request  
   

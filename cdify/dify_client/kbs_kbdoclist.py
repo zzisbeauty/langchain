@@ -13,12 +13,24 @@ curl --location --request GET 'http://10.0.15.21/v1/datasets/{dataset_id}/docume
 --header 'Authorization: Bearer {api_key}'
 """
 def get_db_doc_list(dataset_id):
-    url = SERVER_BASE_URL + f'/datasets/{dataset_id}/documents'
-    response = requests.get(url, headers=db_hearders)
-
-    # print("状态码:", response.status_code)
-    # print(json.loads(response.text))
-    return response
+    url = SERVER_BASE_URL + f'/datasets/{dataset_id}/documents'  
+    all_documents = []  
+    page = 1
+    limit = 100
+    while True:
+        params = {'page': page,'limit': limit}  
+        response = requests.get(url, headers=db_hearders, params=params)
+        if response.status_code != 200:  
+            raise Exception(f"API 请求失败: {response.status_code}")  
+        data = response.json()  
+        documents = data.get('data', [])  
+        all_documents.extend(documents)
+        # 检查是否还有更多数据  
+        has_more = data.get('has_more', False)  
+        if not has_more or len(documents) < limit:  
+            break  
+        page += 1
+    return all_documents
 
 
 

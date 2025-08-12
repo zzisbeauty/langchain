@@ -67,7 +67,7 @@ kbs_kbup = Blueprint('kbs_kbup', __name__)
 import os
 import json
 import tempfile
-from werkzeug.utils import secure_filename
+# from werkzeug.utils import secure_filename
 
 
 @kbs_kbup.route(BASE_URL + '/document/upload', methods=['POST'])
@@ -82,19 +82,13 @@ def insert_type2db():
         
         # 确定上传的文件名
         file_obj = request.files['file']
+        file_content = file_obj.read()
         file_name = file_obj.filename
-        print('--------------------------------------------------',file_name)
+        print('--------------------获取文件NAME方便DIFY存储',file_name)
         if not os.path.splitext(file_name)[1] and file_obj.filename:  
             original_ext = os.path.splitext(file_obj.filename)[1]  
             file_name = file_name + original_ext  
         # print(f"处理后的文件名: {file_name}")  
-
-        # # 保存文件到临时目录
-        # filename = secure_filename(file_name)
-        # temp_dir = tempfile.gettempdir()
-        # temp_file_path = os.path.join(temp_dir, filename)
-        # file_obj.save(temp_file_path)
-        file_content = file_obj.read()
 
         # 其他参数
         mode = request.form.get('mode', 'custom')
@@ -130,18 +124,19 @@ def insert_type2db():
         response = upload_file_with_metadata(
             db_id=dataset_id, 
             file_name=file_name,
-            # file_path=temp_file_path, # 不做文件的临时存储
-            file_path=file_content, # 直接传输内容
+            file_content=file_content, # 直接传输内容
             data_json=data_json_str
         )
-        if response.status_code != 200:
-            return jsonify({'status_code': -1, 'data': "", 'info': '导入数据失败，请检查参数'}), 500
-
-        temp_return = {'status_code': 0,'data': response.text,'info': f'导入FILE数据到知识库 {dataset_id} 成功!'}
+        if response.status_code != 200: return jsonify({'status_code': -1, 'data': "", 'info': '导入数据失败，请检查参数'}), 500
+        dify_api_return = {'status_code': 0,'data': response.text,'info': f'导入FILE数据到知识库 {dataset_id} 成功!'}
+        # print(type(dify_api_return))
+        # print(dify_api_return)
         # return temp_return
         from cdify.api.tls_clean_response import convert_dify_upload_response_to_ragflow_format
-        return convert_dify_upload_response_to_ragflow_format(temp_return)
-
+        temp_return = convert_dify_upload_response_to_ragflow_format(dify_api_return) # dict
+        # temp_return['data']['batch'] = json.loads(dify_api_return['data'])['batch']
+        return temp_return
+    
     except Exception as e:
         print(f"❌ 请求处理失败: {str(e)}")
         return jsonify({'code': -1, 'message': f'服务器内部错误: {str(e)}'}), 500

@@ -18,17 +18,16 @@ from dify_client import DifyClient
 #     return response
 
 
-def upload_file_with_metadata(db_id, file_name, file_path, data_json):
+def upload_file_with_metadata(db_id, file_name, file_content, data_json):
     url = SERVER_BASE_URL + f'/datasets/{db_id}/document/create_by_file'  
-    
-    with open(file_path, 'rb') as file_content:  
-        files = {  
-            'data': (None, data_json, 'application/json'),  
-            'file': (file_name, file_content, 'application/octet-stream')  # 明确指定文件名
-        }  
-        response = requests.post(url, headers=db_hearders_upload_files, files=files)  
-      
-    print('Status Code:', response.status_code)  
+
+    files = {    
+        'data': (None, data_json, 'application/json'),    
+        'file': (file_name, file_content, 'application/octet-stream')  # 直接使用二进制内容  
+    }    
+
+    response = requests.post(url, headers=db_hearders_upload_files, files=files)  
+    # print('Status Code:', response.status_code)  
     print('Response:', response.text)  
     return response
 

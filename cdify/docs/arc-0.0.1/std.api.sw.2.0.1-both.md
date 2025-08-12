@@ -388,25 +388,24 @@ kb_id: 5ba99c8236b811f08483e2281ab37f32
   "code": 0,
   "data": [
     {
+      "batch": "20250811071149495508",
       "created_by": "419e054c-66b7-482a-8615-63fa9ad227dd",
-      "id": "8441ad28-acaf-4f75-bf57-8549a4b1404d",
-      "kb_id": "d32dbfb4-6cb0-4551-ad30-ec2a3cd78fd2",
+      "id": "48bc77c2-b5c5-4115-98e6-8ed9834f1d52",
+      "kb_id": "44ec9e21-6cd7-44ac-bfd3-da8d04cb4b6b",
       "location": "",
-      "name": "Universal Quantum Computational Spectroscopy on a Quantum Chip.pdf",
+      "name": "111111.txt",
       "parser_config": {
-        "pages": [
-          []
         "pages": [
           []
         ]
       },
       "parser_id": "naive",
-      "size": 8917312,
+      "size": 4862,
       "thumbnail": "",
-      "type": "pdf"
+      "type": "txt"
     }
   ],
-  "elapsed_s": 8.2529,
+  "elapsed_s": 0.2309,
   "message": "success"
 }
 ```
@@ -815,3 +814,127 @@ disable: 禁用
 }
 ```
 
+## 文档处理进度查询
+
+POST /document/status
+
+### 文件处理状态说明
+
+1. waiting（等待中） - 文档上传后的初始状态
+2. parsing（解析中） - 文本提取阶段（此阶段执行很快）
+3. cleaning（清理中） - 文档清理和预处理阶段（此阶段执行很快）
+4. splitting（分段中） - 文档分段处理阶段（此阶段执行很快）
+5. indexing（索引中） - 向量嵌入和索引创建阶段（如果需要索引进度百分比的展示，需要获取已经处理的分段和总分段数，这是一部分额外的工作，暂时没有实现，暂时只展示索引中）
+6. completed（已完成） - 处理成功的最终状态
+7. error（错误） - 处理失败时的状态
+8. paused（已暂停） - 用户手动暂停或系统暂停时的状态（除非用户手动前端暂停，但是目前后端没有开发此接口，因此前端也不会有这个按钮，因此这个状态不会面向用户主动显示）
+
+最常用的状态，或者为简化开发，可显示状态：1、5、6、7、8
+
+### 参数情况
+
+```json
+{
+	"kb_id": "a26e10d8-c37e-44a5-afbc-e21b2314c1e2",  // 知识库ID，必填
+	"batch": "20250811051145512224" // 当调用文件上传接口且成功上传后，会返回此字段信息
+}
+```
+
+### 返回示例
+
+```json
+{
+	"data": {
+		"data": [
+			{
+				"cleaning_completed_at": 1754889106,
+				"completed_at": 1754889106,
+				"completed_segments": 20,
+				"error": null,
+				"id": "8c0f2fd0-1baa-434a-8207-95dfe8fa1ae2",
+				"indexing_status": "completed",   // 这是处理完成的标识，只需要这一个字段即可
+				"parsing_completed_at": 1754889105,
+				"processing_started_at": 1754889105,
+				"splitting_completed_at": 1754889106,
+				"total_segments": 20
+			}
+		]
+	},
+	"elapsed_s": 0.0694,
+	"info": "request document status successful!",
+	"status_code": 0
+}
+```
+
+
+## 调用模型进行对话（base - 此接口有效，但是不用）
+
+POST /conversation/completion
+
+### 参数信息
+
+```json
+{
+    "user_id": "test_09_50",  // 用户ID，库表唯一
+    "message": "再总结一下你刚才说的，简短点",  // 用户信息
+    "conversation_id": "a29fde42-6714-42a5-bb52-e4e0ee587acd", // 首次对话此字段为空，当第一轮对话结束会返回此字段，如果需要基于上下文聊天，后续对话需要填写此字段
+    "streaming": false // 响应模式，阻塞 or 流式
+}
+```
+
+### 响应结果
+
+```json
+{
+	"code": 0,
+	"data": { // 注意这个字段中  <think> 之后的内容才是需要返回的真正内容
+		"answer": "嗯，我最近在学习太阳的形成和演化过程，....\n</think>\n\n太阳在诞生过程中会损失质量，主要是因为核聚变将部分质量转化为能量，以及太阳风和物质抛射带走了部分质量。",
+		"conversation_id": "a29fde42-6714-42a5-bb52-e4e0ee587acd",
+		"is_new_conversation": false,
+		"message_id": "35a58db4-420d-4774-8d76-e7cca21ab40d"
+	},
+	"elapsed_s": 20.8173,
+	"message": "Chat successful!"
+}
+```
+
+## 调用模型进行对话（结合知识库）
+
+POST /conversation/completion_db
+
+### 参数信息
+
+```json
+{
+    "user_id": "test_kg_16:54", // 必填
+    "message": "halo",  // 必填
+	// 对 conversation_id 字段的说明
+	// 1. 如果是首轮对话就不要填这个参数，首轮对话会返回此ID，接下来的对话传入则会结合上下文对话
+	// 2. 如果用户在做了几轮对话后，切换了新的 db_id 开始基于新的 db 的对话，则此字段情况，第二轮后再录入此字段，这样用户基于不同的db的对话就是隔离开的
+    "conversation_id": "3b88f562-ff7e-4a8c-89e0-e639fccd1dd5",
+	// 对 kb_id 字段的说明
+	// 需要填，如果不填，则就是普通的模型对话。实际业务此ID最好不要空。切换知识库时
+    "kb_id":"5edb7f74-9f47-4244-951a-807b6e9626b4"
+}
+```
+
+### 响应信息
+
+```json
+{
+	"code": 0,
+	"data": { // </think> 之后是模型的实际响应。 db id 不为空的情况下，这个响应就是结合 db 对用户的问题进行响应
+		"answer": "好的，我现在需要回答用户的问题：“巷子中有什么庙”。用户提供了一段基础知识信息，我需要先仔细阅读并理解这段内容。\n\n首先，基础知识信息分为两部分。第一部分描述了姑苏城阊门外的十里街，街内有仁清巷，巷内有一个古庙，因为地方狭窄，人称“葫芦庙”。这里提到了庙旁住着甄士隐一家。\n\n第二部分讲述了宝玉派茗烟去寻找庙宇的故事，虽然提到了智通寺和瘟神爷，但这部分主要是宝玉的故事，与仁清巷的庙无关。\n\n用户的问题是关于“巷子中有什么庙”，根据第一部分的信息，仁清巷内有一个古庙，名为葫芦庙。因此，我应该回答仁清巷中有一个叫做“葫芦庙”的古庙。\n\n需要注意的是，第二部分虽然提到了庙宇，但并非仁清巷中的庙，而是宝玉寻找的其他地方，因此不在此次回答范围内。\n\n总结一下，用户的问题可以通过第一部分的信息得到准确回答，仁清巷中有葫芦庙。\n</think>\n\n仁清巷中有一个古庙，因为地方窄狭，人称“葫芦庙”。",
+		"conversation_id": "3b88f562-ff7e-4a8c-89e0-e639fccd1dd5",
+		"is_new_conversation": false,
+		"message_id": "0d57c751-f886-41d4-a7f9-34baff6eeffd"
+	},
+	"elapsed_s": 10.8378,
+	"message": "Chat successful!",
+	"rag_info": {
+		"context_length": 836,
+		"context_used": true,
+		"kb_id": "5edb7f74-9f47-4244-951a-807b6e9626b4"
+	}
+}
+```

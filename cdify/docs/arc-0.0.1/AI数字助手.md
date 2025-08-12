@@ -1125,152 +1125,36 @@ POST /v1/chunk/switch
 ...
 
 
+## POST 调用模型对话
 
+POST /v1/conversation/completion
 
-
-
-
-## ？？？？？ - GET 查询知识库知识图谱数据
-
-GET /v1/kb/5ba99c8236b811f08483e2281ab37f32/knowledge_graph
-
-### 请求参数
-
-|名称|位置|类型|必选|说明|
-|---|---|---|---|---|
-|Username|header|string| 否 |none|
-
-> 返回示例
-
-> 200 Response
+> Body 请求参数
 
 ```json
 {
-  "code": 0,
-  "data": {
-    "graph": {},
-    "mind_map": {}
-  },
-  "message": "string"
-}
-```
-
-### 返回结果
-
-|状态码|状态码含义|说明|数据模型|
-|---|---|---|---|
-|200|[OK](https://tools.ietf.org/html/rfc7231#section-6.3.1)|none|Inline|
-
-### 返回数据结构
-
-状态码 **200**
-
-|名称|类型|必选|约束|中文名|说明|
-|---|---|---|---|---|---|
-|» code|integer|true|none||none|
-|» data|object|true|none||none|
-|»» graph|object|true|none||none|
-|»» mind_map|object|true|none||none|
-|» message|string|true|none||none|
-
-
-
-
-
-
-
-### 请求参数
-
-|名称|位置|类型|必选|说明|
-|---|---|---|---|---|
-|Username|header|string| 否 |none|
-|body|body|object| 否 |none|
-|» kb_id|body|string| 否 |ID 编号|
-|» file|body|string(binary)| 否 |none|
-
-> 返回示例
-
-> 200 Response
-
-```json
-{
-  "code": 0,
-  "data": [
+  "conversation_id": "kwbVxZ6L5WkEDWuH9W6vKb",
+  "messages": [
     {
-      "created_by": "string",
-      "id": "string",
-      "kb_id": "string",
-      "location": "string",
-      "name": "string",
-      "parser_config": {
-        "pages": [
-          [
-            0
-          ]
-        ]
-      },
-      "parser_id": "string",
-      "size": 0,
-      "thumbnail": "string",
-      "type": "string"
+      "id": "aujPHmCmNy1aKhzwYaR4Vu",
+      "content": "你好，我是AI助手，作为你的智能伙伴，我既能写文案、想点子，又能陪你聊天、答疑解惑。",
+      "role": "assistant"
+    },
+    {
+      "id": "2Y5BLL792tN4x2NMD7Hmfs",
+      "content": "11",
+      "role": "user"
     }
-  ],
-  "message": "string"
+  ]
 }
 ```
 
-### 返回结果
 
-|状态码|状态码含义|说明|数据模型|
-|---|---|---|---|
-|200|[OK](https://tools.ietf.org/html/rfc7231#section-6.3.1)|none|Inline|
-
-### 返回数据结构
-
-状态码 **200**
-
-|名称|类型|必选|约束|中文名|说明|
-|---|---|---|---|---|---|
-|» code|integer|true|none||none|
-|» data|[object]|true|none||none|
-|»» created_by|string|false|none||none|
-|»» id|string|false|none||none|
-|»» kb_id|string|false|none||none|
-|»» location|string|false|none||none|
-|»» name|string|false|none||none|
-|»» parser_config|object|false|none||none|
-|»»» pages|[array]|true|none||none|
-|»» parser_id|string|false|none||none|
-|»» size|integer|false|none||none|
-|»» thumbnail|string|false|none||none|
-|»» type|string|false|none||none|
-|» message|string|true|none||none|
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-## POST 选择知识库（dify 在对话模块实现）
+## POST 选择知识库进行对话
 
 POST /v1/dialog/set
 
-> Body 请求参数
+### 请求参数
 
 ```json
 {
@@ -1311,153 +1195,80 @@ POST /v1/dialog/set
 }
 ```
 
+### 返回结果
+
+...
+
+### 返回数据结构
+
+...
+
+
+
+
+
+
+
+
+
+
+
+## 查询知识库知识图谱数据（搁置）
+
+GET /v1/kb/5ba99c8236b811f08483e2281ab37f32/knowledge_graph
+
 ### 请求参数
 
 |名称|位置|类型|必选|说明|
 |---|---|---|---|---|
-|UserName|header|string| 否 |none|
+|Username|header|string| 否 |none|
 |body|body|object| 否 |none|
+|» kb_id|body|string| 否 |ID 编号|
+|» file|body|string(binary)| 否 |none|
 
-> 返回示例
-
-> 200 Response
+### 返回示例
 
 ```json
 {
   "code": 0,
   "data": {
-    "description": "string",
-    "icon": "string",
-    "id": "string",
-    "kb_ids": [
-      "string"
-    ],
-    "llm_id": "string",
-    "llm_setting": {
-      "frequency_penalty": 0,
-      "presence_penalty": 0,
-      "temperature": 0,
-      "top_p": 0
-    },
-    "name": "string",
-    "prompt_config": {
-      "empty_response": "string",
-      "keyword": true,
-      "parameters": [
-        {
-          "key": "string",
-          "optional": true
-        }
-      ],
-      "prologue": "string",
-      "quote": true,
-      "reasoning": true,
-      "refine_multiturn": true,
-      "system": "string",
-      "tavily_api_key": "string",
-      "tts": true,
-      "use_kg": true
-    },
-    "rerank_id": "string",
-    "similarity_threshold": 0,
-    "tenant_id": "string",
-    "top_k": 0,
-    "top_n": 0,
-    "vector_similarity_weight": 0
+    "graph": {},
+    "mind_map": {}
   },
   "message": "string"
 }
 ```
 
-### 返回结果
-
-|状态码|状态码含义|说明|数据模型|
-|---|---|---|---|
-|200|[OK](https://tools.ietf.org/html/rfc7231#section-6.3.1)|none|Inline|
-
-### 返回数据结构
-
-状态码 **200**
-
 |名称|类型|必选|约束|中文名|说明|
 |---|---|---|---|---|---|
 |» code|integer|true|none||none|
 |» data|object|true|none||none|
-|»» description|string|true|none||none|
-|»» icon|string|true|none||none|
-|»» id|string|true|none||none|
-|»» kb_ids|[string]|true|none||none|
-|»» llm_id|string|true|none||none|
-|»» llm_setting|object|true|none||none|
-|»»» frequency_penalty|number|true|none||none|
-|»»» presence_penalty|number|true|none||none|
-|»»» temperature|number|true|none||none|
-|»»» top_p|number|true|none||none|
-|»» name|string|true|none||none|
-|»» prompt_config|object|true|none||none|
-|»»» empty_response|string|true|none||none|
-|»»» keyword|boolean|true|none||none|
-|»»» parameters|[object]|true|none||none|
-|»»»» key|string|false|none||none|
-|»»»» optional|boolean|false|none||none|
-|»»» prologue|string|true|none||none|
-|»»» quote|boolean|true|none||none|
-|»»» reasoning|boolean|true|none||none|
-|»»» refine_multiturn|boolean|true|none||none|
-|»»» system|string|true|none||none|
-|»»» tavily_api_key|string|true|none||none|
-|»»» tts|boolean|true|none||none|
-|»»» use_kg|boolean|true|none||none|
-|»» rerank_id|string|true|none||none|
-|»» similarity_threshold|number|true|none||none|
-|»» tenant_id|string|true|none||none|
-|»» top_k|integer|true|none||none|
-|»» top_n|integer|true|none||none|
-|»» vector_similarity_weight|number|true|none||none|
+|»» graph|object|true|none||none|
+|»» mind_map|object|true|none||none|
 |» message|string|true|none||none|
 
-## POST 调用模型对话
 
-POST /v1/conversation/completion
 
-> Body 请求参数
 
-```json
-{
-  "conversation_id": "kwbVxZ6L5WkEDWuH9W6vKb",
-  "messages": [
-    {
-      "id": "aujPHmCmNy1aKhzwYaR4Vu",
-      "content": "你好，我是AI助手，作为你的智能伙伴，我既能写文案、想点子，又能陪你聊天、答疑解惑。",
-      "role": "assistant"
-    },
-    {
-      "id": "2Y5BLL792tN4x2NMD7Hmfs",
-      "content": "11",
-      "role": "user"
-    }
-  ]
-}
-```
 
-### 请求参数
 
-|名称|位置|类型|必选|说明|
-|---|---|---|---|---|
-|UserName|header|string| 否 |none|
-|body|body|object| 否 |none|
 
-> 返回示例
 
-> 200 Response
 
-### 返回结果
 
-|状态码|状态码含义|说明|数据模型|
-|---|---|---|---|
-|200|[OK](https://tools.ietf.org/html/rfc7231#section-6.3.1)|none|Inline|
 
-### 返回数据结构
 
-# 数据模型
+
+
+
+
+
+
+
+
+
+
+
+
+
 

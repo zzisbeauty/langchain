@@ -143,7 +143,8 @@ def convert_dify_upload_response_to_ragflow_format(dify_response: dict) -> dict:
         "parser_id": "naive",
         "size": data_source_detail.get("size", 0),
         "thumbnail": "",
-        "type": data_source_detail.get("extension", "")
+        "type": data_source_detail.get("extension", ""),
+        "batch": dify_data.get('batch')
     }
 
     return {"code": 0, "data": [ragflow_item], "message": "success"}

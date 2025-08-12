@@ -1,4 +1,11 @@
-# 三 注册路由蓝图
+"""
+Blueprint 是一个“路由集合容器”
+→ 定义了一个 Blueprint kbs_kernel
+→ 所有数据库的核心操作如下（/kb/update、/kb/create）都添加到这个 kbs_kernel 中
+→ 注册这个 kbs_kernel 到 app 上，相当于把所有接口一次性装上
+"""
+
+# 注册路由蓝图
 from .health import health
 from .kbs_kblist import kbs_kblist
 from .kbs_kbdetail import kbs_kbdetail
@@ -15,12 +22,11 @@ from .document_del import deldoc
 from .document_start_stop import doc_toggle
 from .models import model_select
 
-# from .chat_base import chat_base
-# from .conversation_sdk_routes import chat_bp
-from .conversation_requests_routes import chat_bp
-from .conversation_id_history import chat_bp_history_with_convid
-from .conversation_chat_with_kg import dynamic_chat_bp
 
+from .conversation_with_kg import chat_kg
+from .conversation_with_db_id import chat_db
+from .conversation_with_nothing import chat_bp
+from .conversation_history_id import chat_bp_history_with_convid
 
 all_blueprints = [
     health,
@@ -32,7 +38,7 @@ all_blueprints = [
     kbs_kbdoclist,
     retrieval,
     emb_status,
-    
+
     downloadfiles,
     deldoc,
 
@@ -40,14 +46,7 @@ all_blueprints = [
     model_select,
 
     chat_bp,
+    chat_db,
+    chat_kg,
     chat_bp_history_with_convid,
-    dynamic_chat_bp, # with kg retrieval
 ]
-
-
-"""
-Blueprint 是一个“路由集合容器”
-→ 定义了一个 Blueprint kbs_kernel
-→ 所有数据库的核心操作如下（/kb/update、/kb/create）都添加到这个 kbs_kernel 中
-→ 注册这个 kbs_kernel 到 app 上，相当于把所有接口一次性装上
-"""

@@ -38,40 +38,44 @@ else:
     ... # 此时报错，不清楚操作系统类型
 
 
+# base dify configs
+MAX_LIMIT = 100 # # 对 dify 中的导出做一个统一的控制
 BASE_URL = '/hanwei/v1' # base url in local api path
 
-# # hanwei 10.0.15.21 dify server
-# secret_key = os.getenv("APP_KEY", 'app-22GqqTwNXaDNN5n1EuGpNF02')
-# database_key = os.getenv("DATABASE_KEY", 'dataset-W1Xk9bRPNcEb5rfr2pb7Pbhh')
-# SERVER_URL = 'http://10.0.15.21'
-# SERVER_BASE_URL = 'http://10.0.15.21/v1' # dify server base url
+
 
 # hanwei windows dify server
-# secret_key = os.getenv("APP_KEY", 'app-cE8dOILnen8ELCQSAdaFsNYE')
-# secret_key = 'app-cE8dOILnen8ELCQSAdaFsNYE'
-secret_key = 'app-b7VK5TkbDaT5DPxqz7oZbynF' # with kg 的对话测试
-# database_key = os.getenv("DATABASE_KEY", 'dataset-T2Hi8kmyqQCMmh6ZEtwOV2Xt')
-# database_key = 'dataset-T2Hi8kmyqQCMmh6ZEtwOV2Xt'
-database_key = 'dataset-T2Hi8kmyqQCMmh6ZEtwOV2Xt'
 SERVER_URL = 'http://10.30.30.97:8080'
 SERVER_BASE_URL = 'http://10.30.30.97:8080/v1'
 SERVER_BASE_URL_CONSOLE = "http://10.30.30.97:8080/console/api"
+secret_key = 'app-b7VK5TkbDaT5DPxqz7oZbynF'
+database_key = 'dataset-T2Hi8kmyqQCMmh6ZEtwOV2Xt'
+console_key = "x44sVYhh1ET8cCVdAj90JdYeqgEpkeIAm6MwXjxSrlUpnY5CUTmsFvX9"
 
-# 对 dify 中的导出做一个统一的控制
-MAX_LIMIT = 100
 
+# server.15.12
+...
+
+# server other
+...
+
+
+# windows model server
 
 # ollama embedding model config
 embedding_model_config = "bge-m3:latest"
 embedding_model_provider_config = 'langgenius/ollama/ollama'
-
 # ollama rerank model config
 # reranking_model_name_config = "linux6200/bge-reranker-v2-m3:latest"
 # reranking_provider_name_config = "langgenius/ollama/ollama"
 
-# xinference rerank model config   
+# windows xinference rerank model config   
 reranking_model_name_config = "bge-reranker-base" # "bce-reranker-base_v1" 
 reranking_provider_name_config = "xinference"
+
+
+
+
 
 # APP 后端服务 API header 封装
 db_hearders = {
@@ -79,9 +83,8 @@ db_hearders = {
     "Content-Type": "application/json",
 }
 
-
 db_hearders_console = {
-    'Authorization': 'Bearer x44sVYhh1ET8cCVdAj90JdYeqgEpkeIAm6MwXjxSrlUpnY5CUTmsFvX9', # 使用管理员密钥 - Windows dify
+    'Authorization': f'Bearer {console_key}', # 使用管理员密钥 - Windows dify
     "Content-Type": "application/json",
     "X-WORKSPACE-ID":"cb80d333-6ecf-434d-9268-e69ed89f4e6a"
 }
