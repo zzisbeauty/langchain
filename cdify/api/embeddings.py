@@ -25,14 +25,14 @@ def docProcess():
         if response.status_code == 200:
             print(1)
             temp_return = {  
-                'status_code': 0,
+                'code': 0,
                 'data': response.json(),  
                 'info': 'request document status successful!'  
             }  
         else:  
             print(2)
             temp_return = {  
-                'status_code': response.status_code,  
+                'code': response.status_code,  
                 'data': response.json() if response.text else {},  
                 'info': f'API调用失败: {response.status_code}'  
             }  
@@ -40,7 +40,7 @@ def docProcess():
         return wrap_check_text_processing_progress_response(temp_return)  
 
     except Exception as e:  
-        return {'status_code': -1, 'info': f'请求异常: {str(e)}', 'data': ""}
+        return {'code': -1, 'info': f'请求异常: {str(e)}', 'data': ""}
 
 
 
