@@ -4,7 +4,8 @@ from flask import Blueprint, request
 
 
 
-""" 基于知识库的对话接口, 或者拓展其他外部三方 API 的对话。目前此接口是无用的"""
+""" 基于知识库的对话接口, 或者拓展其他外部三方 API 的对话。目前此接口是无用的
+"""
 
 
 # routes/dynamic_knowledge_chat_routes.py  

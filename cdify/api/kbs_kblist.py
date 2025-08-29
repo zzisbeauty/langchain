@@ -44,3 +44,34 @@ def request_db_list():
     # return wrap_dataset_info_response(temp_return)
     from cdify.api.tls_clean_kbs_res_clean import convert_dify_response_to_ragflow_format
     return convert_dify_response_to_ragflow_format(temp_return)
+
+
+
+
+@kbs_kblist.route(BASE_URL + '/getkbidwithdocid', methods=['GET'])
+@timed_request
+def with_docid_get_dbid(): # params target_docid
+    param = request.args.to_dict()
+    target_docid = param.get('target_docid','')
+    if not target_docid:
+        return ""
+    from cdify.dify_client.kbs_kblist import requests_datasets_list
+    response = requests_datasets_list(page=1,limit=10000000,keyword='',tag_ids='',)
+    if response:
+        allkbids = [] # 获取所有的 kb id
+        for i in response:
+            allkbids.append(i['id'])
+        from cdify.dify_client.kbs_kbdoclist import get_db_doc_list  
+        for eachkb_id in allkbids:
+            response1 = get_db_doc_list(eachkb_id,1,10000000)
+            print(response1)
+            if response1:
+                for i in response1:
+                    if target_docid == i['id']:
+                        return {'code':0,'data': eachkb_id, 'message':'通过docid找到了kbid'}
+            else:
+                return {'code': -1, 'data': "", 'message': '未查到任何DB信息',}        
+    if not response or response['data']['total'] == 0:
+        return {'code': -1, 'data': "", 'message': '未查到任何DB信息',}
+    
+    

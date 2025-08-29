@@ -4,7 +4,7 @@ from cdify.utils.config import BASE_URL
 from cdify.utils.decorators import timed_request
 
 
-""" 基础对话接口。此接口方法可以被涵盖到 conversation_with_db_id 接口中"""
+""" 基础对话接口。此接口方法可以被涵盖到 conversation_with_db_id 接口中 """
 
 chat_bp = Blueprint('chat', __name__)  
   

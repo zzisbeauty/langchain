@@ -5,10 +5,11 @@ from cdify.utils.config import BASE_URL
 from cdify.utils.decorators import timed_request
 import json  
 
-""" 对话接口 with DB ID """
+""" 对话接口 with DB ID 
+"""
 
 chat_db = Blueprint('chatdb', __name__)  
-  
+
 
 @chat_db.route(BASE_URL + '/conversation/completion_db', methods=['POST'])  
 @timed_request  
@@ -16,17 +17,17 @@ def completion_db():
     """RAG增强的对话接口 - 支持动态知识库选择, kb_id 每次请求都要传入； conversation_id 必要时每次都传入"""  
     try:
         data = request.get_json()  
-        print(data)
+        # print(data)
         user_id = data.get('user_id', '') if data else ''  
         message = data.get('message', '') if data else ''  
         kb_id = data.get('kb_id', '') if data else None  # 知识库ID  
-        streaming = data.get('streaming', False) if data else False  
+        streaming = data.get('streaming', True) if data else False  
 
         if not user_id:  
             return jsonify({"error": "user_id是必填参数"}), 400  
         if not message:  
             return jsonify({"error": "message是必填参数"}), 400  
-          
+
         context = ""
         if kb_id: # 1. 如果指定了知识库，先进行检索
             context = retrieve_knowledge_internal(kb_id, message)
@@ -63,7 +64,9 @@ def completion_db():
 
     except Exception as e:  
         return jsonify({"error": f"服务错误: {str(e)}"}), 500  
-  
+
+
+
 def retrieve_knowledge_internal(kb_id: str, question: str) -> str:  
     """内部调用检索接口"""  
     try:  

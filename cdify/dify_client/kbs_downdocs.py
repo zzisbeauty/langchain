@@ -1,22 +1,4 @@
-
-
-
-
-
-"""
-curl --location --request GET 'https://api.dify.ai/v1/datasets/{dataset_id}/documents/{document_id}/upload-file' \  
---header 'Authorization: Bearer {api_key}' \  
---header 'Content-Type: application/json'
-"""
-
-
-
-
-
-
 import os
-import sys
-import json
 from typing import Optional, Dict, Any  
 
 import requests
@@ -25,19 +7,12 @@ from cdify.utils.loggers import logger
 
 
 
-def download_document_from_dataset(  
-    dataset_id: str,     
-    document_id: str,    
-    download_dir: str = "./cdify/datas/downloads-from-dify"    
-) -> Dict[str, Any]:  
-    """  
-    从指定知识库下载单个文档
+def download_document_from_dataset(dataset_id: str, document_id: str,  download_dir: str = "./cdify/datas/downloads-from-dify") -> Dict[str, Any]:  
+    """ 从指定知识库下载单个文档
     """  
     headers = db_hearders  # 修正拼写错误  
-      
     # 调用获取上传文件信息的接口  
     upload_file_url = SERVER_BASE_URL + f"/datasets/{dataset_id}/documents/{document_id}/upload-file"  
-      
     try:  
         response = requests.get(upload_file_url, headers=headers)  
         response.raise_for_status()  
@@ -84,26 +59,16 @@ def download_document_from_dataset(
         }  
           
     except requests.exceptions.RequestException as e:  
-        return {  
-            'code': -1,  
-            'data': '',  
-            'info': f'API 请求失败: {str(e)}'  
-        }  
+        return {'code': -1, 'data': '', 'info': f'API 请求失败: {str(e)}'}  
     except Exception as e:  
-        return {  
-            'code': -1,  
-            'data': '',  
-            'info': f'下载失败: {str(e)}'  
-        }
+        return {'code': -1, 'data': '', 'info': f'下载失败: {str(e)}'}
     
 
 
-def batch_download_documents_from_dataset(  
-    dataset_id: str,  
-    download_dir: str = "./cdify/datas/downloads-from-dify"  
-) -> Dict[str, Any]:  
-    """  
-    批量下载知识库中的所有文档  
+
+
+def batch_download_documents_from_dataset(dataset_id: str, download_dir: str = "./cdify/datas/downloads-from-dify") -> Dict[str, Any]:  
+    """ 批量下载知识库中的所有文档  
     """  
     headers = db_hearders  
       
@@ -117,11 +82,7 @@ def batch_download_documents_from_dataset(
           
         documents = documents_data.get('data', [])  
         if not documents:  
-            return {  
-                'code': -1,  
-                'data': '',  
-                'info': '知识库中没有找到文档'  
-            }  
+            return {'code': -1, 'data': '',  'info': '知识库中没有找到文档'}  
           
         # 批量下载结果  
         results = []  
@@ -164,14 +125,7 @@ def batch_download_documents_from_dataset(
         }  
           
     except requests.exceptions.RequestException as e:  
-        return {  
-            'code': -1,  
-            'data': '',  
-            'info': f'获取文档列表失败: {str(e)}'  
-        }  
+        return {'code': -1, 'data': '', 'info': f'获取文档列表失败: {str(e)}'}  
     except Exception as e:  
-        return {  
-            'code': -1,  
-            'data': '',  
-            'info': f'批量下载失败: {str(e)}'  
-        }
+        return {'code': -1, 'data': '', 'info': f'批量下载失败: {str(e)}'}
+

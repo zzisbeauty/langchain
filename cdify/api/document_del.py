@@ -5,20 +5,45 @@ from cdify.utils.decorators import timed_request
  
 deldoc = Blueprint('deldoc', __name__)
 
-"""
-删除指定知识库中的指定文档
+""" 删除指定知识库中的指定文档
 """
 
-@deldoc.route(BASE_URL + '/document/rm', methods=['DELETE'])
-@timed_request
-def request_db_info_with_dbid():
-    data = request.get_data()
-    json_data = json.loads(data.decode("utf-8"))
-    dataset_id = json_data.get('kb_id','')
-    document_id =  json_data.get('doc_id','')
 
-    from cdify.dify_client.document_del import docdelete
-    response = docdelete(dataset_id, document_id)
-    if 'false' in response:
-        return {'code': -1, 'data': "", 'message': 'Delete document failed, 可能的原因是请求知识库信息失败, 从检查网络开始',}
-    return {'code': 0, 'data': "", 'message': 'Delete DB successful!'}
+# 只删除一个  这个方法没用
+# @deldoc.route(BASE_URL + '/document/rm', methods=['DELETE'])
+# @timed_request
+# def request_db_info_with_dbid():
+#     data = request.get_data()
+#     json_data = json.loads(data.decode("utf-8"))
+#     dataset_id = json_data.get('kb_id','')
+#     document_id =  json_data.get('doc_id','')
+
+#     from cdify.dify_client.document_del import docdelete
+#     response = docdelete(dataset_id, document_id)
+#     if 'false' in response:
+#         return {'code': -1, 'data': "", 'message': 'Delete document failed, 可能的原因是请求知识库信息失败, 从检查网络开始',}
+#     return {'code': 0, 'data': "", 'message': 'Delete DB successful!'}
+
+
+
+# 可以删除多个，兼容删除一个 doc
+@deldoc.route(BASE_URL + '/document/rm', methods=['DELETE'])  
+@timed_request  
+def request_db_info_with_dbid():  
+    data = request.get_data()  
+    json_data = json.loads(data.decode("utf-8"))  
+    dataset_id = json_data.get('kb_id','')  
+    document_id = json_data.get('doc_id','')  
+      
+    if not dataset_id or not document_id:  
+        return {'code': -1, 'data': "", 'message': '参数没有传递完整，请补全参数！'}  
+  
+    from cdify.dify_client.document_del import docdelete  
+    response = docdelete(dataset_id, document_id)  
+      
+    if 'false' in response or 'failed' in response:  
+        return {'code': -1, 'data': "", 'message': f'Delete documents failed: {response}'}  
+    elif 'partial' in response:  
+        return {'code': 1, 'data': "", 'message': f'Delete documents partially successful: {response}'}  
+    else:  
+        return {'code': 0, 'data': "", 'message': f'Delete documents successful: {response}'}

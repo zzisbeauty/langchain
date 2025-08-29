@@ -1,7 +1,6 @@
 import sys, os
 
-"""
-无法更改工作流中已经设置的 db id 因此这种调用 app 接口的方式完成知识库检索对话的方案不通，但是这个代码过程是合理的
+""" 无法更改工作流中已经设置的 db id 因此这种调用 app 接口的方式完成知识库检索对话的方案不通，但是这个代码过程是合理的
 """
 
 
@@ -26,10 +25,10 @@ if project_root not in sys.path:
 from cdify.utils.config import *
 
 
-from flask import Flask, request, jsonify  
+import requests, time
 from flask_cors import CORS  
-import requests  
-import time  
+from flask import Flask, request, jsonify  
+
 from typing import Dict, Optional, Any  
   
 app = Flask(__name__)  

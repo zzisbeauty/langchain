@@ -7,44 +7,29 @@ from cdify.utils.config import *
 from cdify.utils.loggers import logger
 
 
-
-"""
-curl --location --request GET 'http://10.0.15.21/v1/datasets/{dataset_id}/documents' \
---header 'Authorization: Bearer {api_key}'
-"""
-def get_db_doc_list(dataset_id):
-    url = SERVER_BASE_URL + f'/datasets/{dataset_id}/documents'  
-    all_documents = []  
-    page = 1
-    limit = 100
-    while True:
-        params = {'page': page,'limit': limit}  
-        response = requests.get(url, headers=db_hearders, params=params)
-        if response.status_code != 200:  
-            raise Exception(f"API 请求失败: {response.status_code}")  
-        data = response.json()  
-        documents = data.get('data', [])  
-        all_documents.extend(documents)
-        # 检查是否还有更多数据  
-        has_more = data.get('has_more', False)  
-        if not has_more or len(documents) < limit:  
-            break  
-        page += 1
-    return all_documents
+# 获取知识库中的所有 doc list
+def get_db_doc_list(dataset_id, page=1, limit=20):  
+    url = SERVER_BASE_URL + f'/datasets/{dataset_id}/documents'    
+    params = {'page': page, 'limit': limit}    
+    response = requests.get(url, headers=db_hearders, params=params)  
+    if response.status_code != 200:    
+        raise Exception(f"API 请求失败: {response.status_code}")    
+        # return ''
+    data = response.json()
+    print(data)
+    documents = data.get('data', [])    
+    return documents
 
 
-
-
-# 获取所有 chunks
+# 获取所有 doc chunks
 def get_db_doc_paragraphs_list(dataset_id, doc_id, page=1, limit=100):
     url = SERVER_BASE_URL + f'/datasets/{dataset_id}/documents/{doc_id}/segments'
     params = {
         'page': page,  
-        'limit': limit  # 设置为最大值100  
+        'limit': limit  # 设置为最大值100
     }
     response = requests.get(
-        url, headers=db_hearders, 
-        params=params # 分页参数
+        url, headers=db_hearders, params=params # 分页参数
     )
     # print("状态码:", response.status_code)
     # print("响应内容:", json.loads(response.text))
@@ -52,6 +37,38 @@ def get_db_doc_paragraphs_list(dataset_id, doc_id, page=1, limit=100):
 
 
 
+
+def get_document_by_id(dataset_id, document_id):  
+    """ 通过文档ID获取文档详情  
+    Args:  
+        dataset_id: 知识库ID  
+        document_id: 文档ID  
+    Returns:  
+        response: API响应  
+    """  
+    url = SERVER_BASE_URL + f'/datasets/{dataset_id}/documents/{document_id}'  
+    response = requests.get(url, headers=db_hearders)  
+    return response
+
+
+
+
+
+
+def update_document_segment(dataset_id, document_id, segment_id, segment_data):  
+    """ 更新文档片段  
+    Args:  
+        dataset_id: 知识库ID  
+        document_id: 文档ID  
+        segment_id: 片段ID  
+        segment_data: 片段数据  
+    Returns:  
+        response: API响应  
+    """  
+    url = SERVER_BASE_URL + f'/datasets/{dataset_id}/documents/{document_id}/segments/{segment_id}'  
+    data = {"segment": segment_data}  
+    response = requests.post(url, headers=db_hearders, json=data)  
+    return response
 
 
 """
