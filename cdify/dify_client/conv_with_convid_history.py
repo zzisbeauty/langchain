@@ -3,22 +3,11 @@ import json, time
 import requests  
 from cdify.utils.config import *
   
-# 配置信息  
-# API_KEY = "your_app_key_here"  # 替换为您的实际 App Key  
-# BASE_URL = "http://10.30.30.97:8080/v1"  
-  
-
 
 def get_conversation_messages(user_id: str, conversation_id: str, limit: int = 20, first_id: str = None, export_json: bool = False):  
+    """ 获取指定会话的对话历史，支持导出完整JSON格式  
     """  
-    获取指定会话的对话历史，支持导出完整JSON格式  
-    """  
-    try:  
-        # headers = {  
-        #     "Authorization": f"Bearer {API_KEY}",  
-        #     "Content-Type": "application/json"  
-        # }  
-          
+    try:            
         if export_json:  
             # 导出模式：忽略传入的limit，分批获取所有消息  
             return _get_all_messages_for_export(app_headers, user_id, conversation_id)  

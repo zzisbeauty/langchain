@@ -20,22 +20,21 @@ if project_root not in sys.path:
 
 
 
-# config info： 获取环境变量信息
-import platform
-from dotenv import load_dotenv
+# # config info： 获取环境变量信息
+# import platform
+# from dotenv import load_dotenv
+# OS_NAME = platform.system()
+# if OS_NAME == "Windows":
+#     sys.path.append(r'E:\langchain-core-0.3.64')
+#     load_dotenv(r'E:\langchain-core-0.3.64\cdify\.env')
+#     ...
+# elif OS_NAME == "Linux":
+#     sys.path.append('/home/langchain-core-0.3.64')
+#     load_dotenv('/home/langchain/cdify/.env')
+#     ...
+# else:
+#     ... # 此时报错，不清楚操作系统类型
 
-OS_NAME = platform.system()
-
-if OS_NAME == "Windows":
-    sys.path.append(r'E:\langchain-core-0.3.64')
-    load_dotenv(r'E:\langchain-core-0.3.64\cdify\.env')
-    ...
-elif OS_NAME == "Linux":
-    sys.path.append('/home/langchain-core-0.3.64')
-    load_dotenv('/home/langchain/cdify/.env')
-    ...
-else:
-    ... # 此时报错，不清楚操作系统类型
 
 
 # base dify configs
@@ -44,23 +43,37 @@ BASE_URL = '/hanwei/v1' # base url in local api path
 
 
 
+
 # hanwei windows dify server
-SERVER_URL = 'http://10.30.30.97:8080'
-SERVER_BASE_URL = 'http://10.30.30.97:8080/v1'
-SERVER_BASE_URL_CONSOLE = "http://10.30.30.97:8080/console/api"
-secret_key = 'app-b7VK5TkbDaT5DPxqz7oZbynF'
-database_key = 'dataset-T2Hi8kmyqQCMmh6ZEtwOV2Xt'
+# SERVER_URL = 'http://10.30.30.97:8080'
+# SERVER_BASE_URL = 'http://10.30.30.97:8080/v1'
+# SERVER_BASE_URL_CONSOLE = "http://10.30.30.97:8080/console/api"
+# secret_key = 'app-b7VK5TkbDaT5DPxqz7oZbynF'
+# database_key = 'dataset-T2Hi8kmyqQCMmh6ZEtwOV2Xt'
+# console_key = "x44sVYhh1ET8cCVdAj90JdYeqgEpkeIAm6MwXjxSrlUpnY5CUTmsFvX9" # 
+# X_WORKSPACE_ID = "cb80d333-6ecf-434d-9268-e69ed89f4e6a" # 操作空间ID
+
+
+
+# server  .21
+SERVER_URL = 'http://10.0.15.21:8080'
+SERVER_BASE_URL = 'http://10.0.15.21:8080/v1'
+SERVER_BASE_URL_CONSOLE = "http://10.0.15.21:8080/console/api"
+secret_key = 'app-b7VK5TkbDaT5DPxqz7oZbynF' # 未配置，请勿使用
+database_key = 'dataset-UYpf9icQwpAzxFFJgKELaOyG'
+X_WORKSPACE_ID = "ae642b84-7d5c-49e7-89e2-8605e913e9a6" # 操作空间ID
+
+
+
+
+# 强随机字符串，集合操作空间ID构建 request headers，实现绕过权限限制实现调用 console api
 console_key = "x44sVYhh1ET8cCVdAj90JdYeqgEpkeIAm6MwXjxSrlUpnY5CUTmsFvX9"
 
 
-# server.15.12
-...
-
-# server other
-...
 
 
-# windows model server
+
+# **************** windows model server
 
 # ollama embedding model config
 embedding_model_config = "bge-m3:latest"
@@ -72,6 +85,8 @@ embedding_model_provider_config = 'langgenius/ollama/ollama'
 # windows xinference rerank model config   
 reranking_model_name_config = "bge-reranker-base" # "bce-reranker-base_v1" 
 reranking_provider_name_config = "xinference"
+
+# **************** windows model server
 
 
 
@@ -86,7 +101,7 @@ db_hearders = {
 db_hearders_console = {
     'Authorization': f'Bearer {console_key}', # 使用管理员密钥 - Windows dify
     "Content-Type": "application/json",
-    "X-WORKSPACE-ID":"cb80d333-6ecf-434d-9268-e69ed89f4e6a"
+    "X-WORKSPACE-ID": X_WORKSPACE_ID
 }
 
 db_hearders_upload_files = {

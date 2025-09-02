@@ -14,8 +14,7 @@ _dify_service = DifyChatService()   # 全局服务实例
 
 
 def create_chat_session_with_listener(user_id: str, message: str):  
-    """  
-    创建新对话会话并保持监听状态  
+    """ 创建新对话会话并保持监听状态  
     :param user_id: 用户ID  
     :param message: 初始消息  
     :return: 生成器，持续监听用户消息  
@@ -72,7 +71,7 @@ def create_chat_session_with_listener(user_id: str, message: str):
                     except json.JSONDecodeError:  
                         continue  
 
-        # 保持监听状态，等待后续消息  
+        # 保持监听状态，等待后续消息
         while True:
             yield {  
                 "type": "heartbeat",  
@@ -89,8 +88,7 @@ def create_chat_session_with_listener(user_id: str, message: str):
         }  
   
 def get_user_conversation_ids(user_id: str, limit: int = 50):  
-    """  
-    获取用户的所有会话ID列表  
+    """ 获取用户的所有会话ID列表  
     :param user_id: 用户ID  
     :param limit: 返回数量限制  
     :return: 会话ID列表  
@@ -129,8 +127,7 @@ def get_user_conversation_ids(user_id: str, limit: int = 50):
         return None  
   
 def export_conversation_json(conversation_id: str, user_id: str):  
-    """  
-    导出指定conversation的完整对话数据  
+    """ 导出指定conversation的完整对话数据  
     :param conversation_id: 对话ID  
     :param user_id: 用户ID  
     :return: 完整对话数据JSON  

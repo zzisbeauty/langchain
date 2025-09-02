@@ -12,8 +12,7 @@ from cdify.utils.config import *
 
 
 def chat_with_dify(user_id: str, message: str, conversation_id: str = None, streaming: bool = False):  
-    """  
-    统一的 Dify 聊天服务 - 根据conversation_id自动判断新建或继续对话  
+    """ 统一的 Dify 聊天服务 - 根据conversation_id自动判断新建或继续对话  
     :param user_id: 用户ID  
     :param message: 用户消息  
     :param conversation_id: 对话ID，None则创建新对话，有值则继续对话  
@@ -21,11 +20,6 @@ def chat_with_dify(user_id: str, message: str, conversation_id: str = None, stre
     :return: 对话响应数据  
     """  
     try:  
-        # headers = {  
-        #     "Authorization": f"Bearer {secret_key}",  
-        #     "Content-Type": "application/json"  
-        # }
-          
         # 构建请求数据  
         data = {  
             "inputs": {},  
@@ -64,13 +58,9 @@ def chat_with_dify(user_id: str, message: str, conversation_id: str = None, stre
         return None  
   
 def get_user_conversations(user_id: str, limit: int = 20):  
-    """获取用户对话列表"""  
-    try:
-        # headers = {  
-        #     "Authorization": f"Bearer {DIFY_CONFIG['API_KEY']}",  
-        #     "Content-Type": "application/json"  
-        # }  
-          
+    """ 获取用户对话列表 
+    """  
+    try:          
         params = {  
             "user": user_id,  
             "limit": limit  
@@ -98,7 +88,8 @@ def get_user_conversations(user_id: str, limit: int = 20):
         return None  
   
 def _handle_streaming_response(response):  
-    """处理流式响应"""  
+    """ 处理流式响应 
+    """  
     conversation_id = None  
     full_answer = ""  
       
