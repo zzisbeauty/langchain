@@ -21,19 +21,19 @@ if project_root not in sys.path:
 
 
 # # config info： 获取环境变量信息
-# import platform
-# from dotenv import load_dotenv
-# OS_NAME = platform.system()
-# if OS_NAME == "Windows":
-#     sys.path.append(r'E:\langchain-core-0.3.64')
-#     load_dotenv(r'E:\langchain-core-0.3.64\cdify\.env')
-#     ...
-# elif OS_NAME == "Linux":
-#     sys.path.append('/home/langchain-core-0.3.64')
-#     load_dotenv('/home/langchain/cdify/.env')
-#     ...
-# else:
-#     ... # 此时报错，不清楚操作系统类型
+import platform
+from dotenv import load_dotenv
+OS_NAME = platform.system()
+if OS_NAME == "Windows":
+    sys.path.append(r'E:\langchain-core-0.3.64')
+    load_dotenv(r'E:\langchain-core-0.3.64\cdify\.env')
+    ...
+elif OS_NAME == "Linux":
+    sys.path.append('/home/langchain-core-0.3.64')
+    load_dotenv('/home/langchain/cdify/.env')
+    ...
+else:
+    ... # 此时报错，不清楚操作系统类型
 
 
 
@@ -45,23 +45,22 @@ BASE_URL = '/hanwei/v1' # base url in local api path
 
 
 # hanwei windows dify server
-# SERVER_URL = 'http://10.30.30.97:8080'
-# SERVER_BASE_URL = 'http://10.30.30.97:8080/v1'
-# SERVER_BASE_URL_CONSOLE = "http://10.30.30.97:8080/console/api"
-# secret_key = 'app-b7VK5TkbDaT5DPxqz7oZbynF'
-# database_key = 'dataset-T2Hi8kmyqQCMmh6ZEtwOV2Xt'
-# console_key = "x44sVYhh1ET8cCVdAj90JdYeqgEpkeIAm6MwXjxSrlUpnY5CUTmsFvX9" # 
-# X_WORKSPACE_ID = "cb80d333-6ecf-434d-9268-e69ed89f4e6a" # 操作空间ID
+SERVER_URL = 'http://10.30.30.97:8080'
+SERVER_BASE_URL = 'http://10.30.30.97:8080/v1'
+SERVER_BASE_URL_CONSOLE = "http://10.30.30.97:8080/console/api"
+secret_key = 'app-b7VK5TkbDaT5DPxqz7oZbynF'
+database_key = 'dataset-T2Hi8kmyqQCMmh6ZEtwOV2Xt'
+X_WORKSPACE_ID = "cb80d333-6ecf-434d-9268-e69ed89f4e6a" # 操作空间ID
 
 
 
 # server  .21
-SERVER_URL = 'http://10.0.15.21:8080'
-SERVER_BASE_URL = 'http://10.0.15.21:8080/v1'
-SERVER_BASE_URL_CONSOLE = "http://10.0.15.21:8080/console/api"
-secret_key = 'app-b7VK5TkbDaT5DPxqz7oZbynF' # 未配置，请勿使用
-database_key = 'dataset-UYpf9icQwpAzxFFJgKELaOyG'
-X_WORKSPACE_ID = "ae642b84-7d5c-49e7-89e2-8605e913e9a6" # 操作空间ID
+# SERVER_URL = 'http://10.0.15.21:8080'
+# SERVER_BASE_URL = 'http://10.0.15.21:8080/v1'
+# SERVER_BASE_URL_CONSOLE = "http://10.0.15.21:8080/console/api"
+# secret_key = 'app-b7VK5TkbDaT5DPxqz7oZbynF' # 未配置，请勿使用
+# database_key = 'dataset-UYpf9icQwpAzxFFJgKELaOyG'
+# X_WORKSPACE_ID = "ae642b84-7d5c-49e7-89e2-8605e913e9a6" # 操作空间ID
 
 
 
