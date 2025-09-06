@@ -38,31 +38,99 @@ def filter_insert_response(response: dict) -> dict:
 
 
 # clean get kb ---> doc ---> chunk list api reponse
+# def convert_dify_to_ragflow_structure4(dify_list, keywords=None, message="success"):
+#     if keywords is None:
+#         keywords_list = []
+#     elif isinstance(keywords, str):
+#         keywords_list = [keywords.strip()] if keywords.strip() else []
+#     elif isinstance(keywords, list):
+#         keywords_list = [kw.strip() for kw in keywords if kw.strip()]
+#     else:
+#         keywords_list = []
+
+#     chunks = []
+#     for item in dify_list:
+#         item_keywords = item.get("keywords", [])
+
+#         # 如果用户真的传了非空关键字过滤条件，就只保留命中的
+#         if keywords_list:
+#             if not any(kw in item_keywords for kw in keywords_list):
+#                 continue
+
+#         # 拼接 content 和 answer
+#         content = item.get("content", "")
+#         answer = item.get("answer", "")
+#         content_with_weight = f"{content}\n{answer}" if answer else content
+
+#         # 构造 ragflow 风格的 chunk
+#         chunk = {
+#             "available_int": 1,
+#             "chunk_id": item.get("id", ""),
+#             "content_with_weight": content_with_weight,
+#             "doc_id": item.get("document_id", ""),
+#             "docnm_kwd": "",
+#             "image_id": "",
+#             "important_kwd": item_keywords,
+#             "positions": [],
+#             "question_kwd": []   # 一定为空
+#         }
+#         chunks.append(chunk)
+
+#     # 返回 ragflow 风格完整结构
+#     result = {"code": 0, "data": {"chunks": chunks, "doc": {}, "total": len(chunks)}, "message": message}
+#     return result
+
+
+
 def convert_dify_to_ragflow_structure4(dify_list, keywords=None, message="success"):
+    # 处理 keywords 参数
     if keywords is None:
         keywords_list = []
     elif isinstance(keywords, str):
         keywords_list = [keywords.strip()] if keywords.strip() else []
-    elif isinstance(keywords, list):
-        keywords_list = [kw.strip() for kw in keywords if kw.strip()]
+    elif isinstance(keywords, (list, tuple)):
+        keywords_list = [kw.strip() for kw in keywords if isinstance(kw, str) and kw.strip()]
     else:
         keywords_list = []
 
+    # 如果 keywords_list 不为空，先尝试过滤 list
+    if keywords_list:
+        filtered_list = []
+        for item in dify_list:
+            raw_keywords = item.get("keywords", None)
+            if isinstance(raw_keywords, (list, tuple)):
+                item_keywords = raw_keywords
+            elif raw_keywords is None:
+                item_keywords = []
+            else:
+                item_keywords = [raw_keywords]
+
+            # 检查 item_keywords 是否包含 keywords，或者 content/sign_content 包含关键词
+            match_in_keywords = any(kw in item_keywords for kw in keywords_list)
+            match_in_content = any(kw in item.get("content", "") or kw in item.get("sign_content", "") for kw in keywords_list)
+
+            if match_in_keywords or match_in_content:
+                filtered_list.append(item)
+
+        # 如果过滤后为空，就使用原列表
+        dify_list_to_use = filtered_list if filtered_list else dify_list
+    else:
+        dify_list_to_use = dify_list
+
     chunks = []
-    for item in dify_list:
-        item_keywords = item.get("keywords", [])
+    for item in dify_list_to_use:
+        raw_keywords = item.get("keywords", None)
+        if isinstance(raw_keywords, (list, tuple)):
+            item_keywords = raw_keywords
+        elif raw_keywords is None:
+            item_keywords = []
+        else:
+            item_keywords = [raw_keywords]
 
-        # 如果用户真的传了非空关键字过滤条件，就只保留命中的
-        if keywords_list:
-            if not any(kw in item_keywords for kw in keywords_list):
-                continue
-
-        # 拼接 content 和 answer
         content = item.get("content", "")
         answer = item.get("answer", "")
         content_with_weight = f"{content}\n{answer}" if answer else content
 
-        # 构造 ragflow 风格的 chunk
         chunk = {
             "available_int": 1,
             "chunk_id": item.get("id", ""),
@@ -72,18 +140,12 @@ def convert_dify_to_ragflow_structure4(dify_list, keywords=None, message="succes
             "image_id": "",
             "important_kwd": item_keywords,
             "positions": [],
-            "question_kwd": []   # 一定为空
+            "question_kwd": []
         }
         chunks.append(chunk)
 
-    # 返回 ragflow 风格完整结构
-    result = {
-        "code": 0,
-        "data": {"chunks": chunks, "doc": {}, "total": len(chunks)},
-        "message": message
-    }
+    result = {"code": 0, "data": {"chunks": chunks, "doc": {}, "total": len(chunks)}, "message": message}
     return result
-
 
 
 # clean api '/document/upload' reponse

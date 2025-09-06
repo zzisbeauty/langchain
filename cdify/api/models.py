@@ -48,8 +48,7 @@ def get_available_models():
 @model_select.route(BASE_URL + '/user/set_tenant_info', methods=['POST'])  
 @timed_request  
 def set_default_model():  
-    """  
-    设置默认模型接口; 请求参数
+    """ 设置默认模型接口; 请求参数
     {  
         "model_type": "text-embedding",  
         "provider": "zhipuai",  
@@ -70,5 +69,5 @@ def set_default_model():
 
     if response.get('success', False):  
         return {'code': 0,'data': "", 'message': 'Set default model successful!'}  
-    else:  
+    else:
         return {'code': -1, 'data': "",  'message': f'Set default model failed: {response.get("error", "Unknown error")}'}

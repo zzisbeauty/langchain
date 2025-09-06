@@ -56,14 +56,17 @@ def get_db_doc_paragraphs_list():
         dataset_id, doc_id=document_id, page=page, limit=limit  # 分页参数
     )
     if response.status_code != 200:
-        return {'code': -1, 'data': "", 'message': '获取知识库 Doc List Failed ！'}
-    
+        return {'code': -1, 'data': "", 'message': '获取知识库 Doc List Failed  - 1！'}
     from cdify.api.tls_clean_response import convert_dify_to_ragflow_structure4
     try:
         parasLits = json.loads(response.text)['data']
+        print('检索到的所有文档切片')
+        print(parasLits[:2])
+        print('--------')
         return convert_dify_to_ragflow_structure4(parasLits,keywords)
-    except:
-        return {'code': -1, 'data': "",  'message': '获取知识库 Doc List Failed ！'}
+    except Exception as e:
+        print(e)
+        return {'code': -1, 'data': "",  'message': '获取知识库 Doc List Failed - 2！'}
 
 
 

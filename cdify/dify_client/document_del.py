@@ -34,7 +34,6 @@ def docdelete(dataset_id, doc_id):
     Args:  
         dataset_id: 知识库ID  
         doc_id: 文档ID（字符串）或文档ID列表（list）  
-      
     Returns:  
         str: 删除结果信息  
     """  
@@ -56,10 +55,10 @@ def docdelete(dataset_id, doc_id):
     for document_id in document_ids:  
         url = SERVER_BASE_URL + f'/datasets/{dataset_id}/documents/{document_id}'  
         try:  
-            response = requests.delete(url, headers=db_hearders)  
-            if response.status_code == 204:  # Dify API删除成功返回204  
+            response = requests.delete(url, headers=db_hearders) 
+            if response.status_code == 200:
                 success_count += 1  
-            else:  
+            else: 
                 failed_count += 1  
                 failed_docs.append(document_id)  
         except Exception as e:  

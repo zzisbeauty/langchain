@@ -33,6 +33,8 @@ def retrieval_db():
     score_threshold = json_data.get('similarity_threshold', 0.2)  # 0.1 ~ 0.3  低一点好召回
 
     top_k = json_data.get('top_k', 3)
+    if top_k == 0:
+        top_k = 3
 
     # todo 以如下哪个参数结构为准待确定 - 验证（一）
     # params = {
@@ -107,6 +109,7 @@ def retrieval_db():
     if response.status_code != 200:    
         return {'code': -1, 'data': "", 'message': '知识库检索失败 ！'}
     data_response = json.loads(response.text)
+    print(data_response)
     temp_return = {'code': 0,'data': data_response, 'message': '知识库检索成功!'}
     # return temp_return
 
