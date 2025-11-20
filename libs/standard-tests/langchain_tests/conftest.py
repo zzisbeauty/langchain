@@ -1,13 +1,19 @@
+"""Pytest conftest."""
+
+from __future__ import annotations
+
 import gzip
-from os import PathLike
 from pathlib import Path
-from typing import Union
+from typing import TYPE_CHECKING, Any, cast
 
 import pytest
 import yaml
 from vcr import VCR
 from vcr.persisters.filesystem import CassetteNotFoundError
 from vcr.request import Request
+
+if TYPE_CHECKING:
+    from os import PathLike
 
 
 class CustomSerializer:
@@ -25,7 +31,13 @@ class CustomSerializer:
     def serialize(cassette_dict: dict) -> bytes:
         """Convert cassette to YAML and compress it."""
         cassette_dict["requests"] = [
-            request._to_dict() for request in cassette_dict["requests"]
+            {
+                "method": request.method,
+                "uri": request.uri,
+                "body": request.body,
+                "headers": {k: [v] for k, v in request.headers.items()},
+            }
+            for request in cassette_dict["requests"]
         ]
         yml = yaml.safe_dump(cassette_dict)
         return gzip.compress(yml.encode("utf-8"))
@@ -33,28 +45,27 @@ class CustomSerializer:
     @staticmethod
     def deserialize(data: bytes) -> dict:
         """Decompress data and convert it from YAML."""
-        text = gzip.decompress(data).decode("utf-8")
-        cassette = yaml.safe_load(text)
-        cassette["requests"] = [
-            Request._from_dict(request) for request in cassette["requests"]
-        ]
+        decoded_yaml = gzip.decompress(data).decode("utf-8")
+        cassette = cast("dict[str, Any]", yaml.safe_load(decoded_yaml))
+        cassette["requests"] = [Request(**request) for request in cassette["requests"]]
         return cassette
 
 
 class CustomPersister:
-    """A custom persister for VCR that uses the CustomSerializer."""
+    """A custom persister for VCR that uses the `CustomSerializer`."""
 
     @classmethod
     def load_cassette(
-        cls, cassette_path: Union[str, PathLike[str]], serializer: CustomSerializer
+        cls,
+        cassette_path: str | PathLike[str],
+        serializer: CustomSerializer,
     ) -> tuple[dict, dict]:
         """Load a cassette from a file."""
         # If cassette path is already Path this is a no-op
         cassette_path = Path(cassette_path)
         if not cassette_path.is_file():
-            raise CassetteNotFoundError(
-                f"Cassette file {cassette_path} does not exist."
-            )
+            msg = f"Cassette file {cassette_path} does not exist."
+            raise CassetteNotFoundError(msg)
         with cassette_path.open(mode="rb") as f:
             data = f.read()
         deser = serializer.deserialize(data)
@@ -62,7 +73,7 @@ class CustomPersister:
 
     @staticmethod
     def save_cassette(
-        cassette_path: Union[str, PathLike[str]],
+        cassette_path: str | PathLike[str],
         cassette_dict: dict,
         serializer: CustomSerializer,
     ) -> None:
@@ -89,9 +100,9 @@ _BASE_FILTER_HEADERS = [
 
 @pytest.fixture(scope="session")
 def _base_vcr_config() -> dict:
-    """Configuration that every cassette will receive.
+    """Return VCR configuration that every cassette will receive.
 
-    (Anything permitted by vcr.VCR(**kwargs) can be put here.)
+    (Anything permitted by `vcr.VCR(**kwargs)` can be put here.)
     """
     return {
         "record_mode": "once",
@@ -106,4 +117,5 @@ def _base_vcr_config() -> dict:
 
 @pytest.fixture(scope="session")
 def vcr_config(_base_vcr_config: dict) -> dict:
+    """VCR config fixture."""
     return _base_vcr_config

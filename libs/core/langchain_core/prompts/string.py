@@ -5,7 +5,7 @@ from __future__ import annotations
 import warnings
 from abc import ABC
 from string import Formatter
-from typing import Any, Callable, Literal
+from typing import TYPE_CHECKING, Any, Literal
 
 from pydantic import BaseModel, create_model
 
@@ -14,6 +14,74 @@ from langchain_core.prompts.base import BasePromptTemplate
 from langchain_core.utils import get_colored_text, mustache
 from langchain_core.utils.formatting import formatter
 from langchain_core.utils.interactive_env import is_interactive_env
+
+if TYPE_CHECKING:
+    from collections.abc import Callable, Sequence
+
+try:
+    from jinja2 import meta
+    from jinja2.exceptions import SecurityError
+    from jinja2.sandbox import SandboxedEnvironment
+
+    class _RestrictedSandboxedEnvironment(SandboxedEnvironment):
+        """A more restrictive Jinja2 sandbox that blocks all attribute/method access.
+
+        This sandbox only allows simple variable lookups, no attribute or method access.
+        This prevents template injection attacks via methods like parse_raw().
+        """
+
+        def is_safe_attribute(self, _obj: Any, _attr: str, _value: Any) -> bool:
+            """Block ALL attribute access for security.
+
+            Only allow accessing variables directly from the context dict,
+            no attribute access on those objects.
+
+            Args:
+                _obj: The object being accessed (unused, always blocked).
+                _attr: The attribute name (unused, always blocked).
+                _value: The attribute value (unused, always blocked).
+
+            Returns:
+                False - all attribute access is blocked.
+            """
+            # Block all attribute access
+            return False
+
+        def is_safe_callable(self, _obj: Any) -> bool:
+            """Block all method calls for security.
+
+            Args:
+                _obj: The object being checked (unused, always blocked).
+
+            Returns:
+                False - all callables are blocked.
+            """
+            return False
+
+        def getattr(self, obj: Any, attribute: str) -> Any:
+            """Override getattr to block all attribute access.
+
+            Args:
+                obj: The object.
+                attribute: The attribute name.
+
+            Returns:
+                Never returns.
+
+            Raises:
+                SecurityError: Always, to block attribute access.
+            """
+            msg = (
+                f"Access to attributes is not allowed in templates. "
+                f"Attempted to access '{attribute}' on {type(obj).__name__}. "
+                f"Use only simple variable names like {{{{variable}}}} "
+                f"without dots or methods."
+            )
+            raise SecurityError(msg)
+
+    _HAS_JINJA2 = True
+except ImportError:
+    _HAS_JINJA2 = False
 
 PromptTemplateFormat = Literal["f-string", "mustache", "jinja2"]
 
@@ -40,9 +108,7 @@ def jinja2_formatter(template: str, /, **kwargs: Any) -> str:
     Raises:
         ImportError: If jinja2 is not installed.
     """
-    try:
-        from jinja2.sandbox import SandboxedEnvironment
-    except ImportError as e:
+    if not _HAS_JINJA2:
         msg = (
             "jinja2 not installed, which is needed to use the jinja2_formatter. "
             "Please install it with `pip install jinja2`."
@@ -50,16 +116,12 @@ def jinja2_formatter(template: str, /, **kwargs: Any) -> str:
             "Do not expand jinja2 templates using unverified or user-controlled "
             "inputs as that can result in arbitrary Python code execution."
         )
-        raise ImportError(msg) from e
+        raise ImportError(msg)
 
-    # This uses a sandboxed environment to prevent arbitrary code execution.
-    # Jinja2 uses an opt-out rather than opt-in approach for sand-boxing.
-    # Please treat this sand-boxing as a best-effort approach rather than
-    # a guarantee of security.
-    # We recommend to never use jinja2 templates with untrusted inputs.
-    # https://jinja.palletsprojects.com/en/3.1.x/sandbox/
-    # approach not a guarantee of security.
-    return SandboxedEnvironment().from_string(template).render(**kwargs)
+    # Use a restricted sandbox that blocks ALL attribute/method access
+    # Only simple variable lookups like {{variable}} are allowed
+    # Attribute access like {{variable.attr}} or {{variable.method()}} is blocked
+    return _RestrictedSandboxedEnvironment().from_string(template).render(**kwargs)
 
 
 def validate_jinja2(template: str, input_variables: list[str]) -> None:
@@ -88,15 +150,13 @@ def validate_jinja2(template: str, input_variables: list[str]) -> None:
 
 
 def _get_jinja2_variables_from_template(template: str) -> set[str]:
-    try:
-        from jinja2 import Environment, meta
-    except ImportError as e:
+    if not _HAS_JINJA2:
         msg = (
             "jinja2 not installed, which is needed to use the jinja2_formatter. "
             "Please install it with `pip install jinja2`."
         )
-        raise ImportError(msg) from e
-    env = Environment()  # noqa: S701
+        raise ImportError(msg)
+    env = _RestrictedSandboxedEnvironment()
     ast = env.parse(template)
     return meta.find_undeclared_variables(ast)
 
@@ -117,13 +177,16 @@ def mustache_formatter(template: str, /, **kwargs: Any) -> str:
 def mustache_template_vars(
     template: str,
 ) -> set[str]:
-    """Get the variables from a mustache template.
+    """Get the top-level variables from a mustache template.
+
+    For nested variables like `{{person.name}}`, only the top-level
+    key (`person`) is returned.
 
     Args:
         template: The template string.
 
     Returns:
-        The variables from the template.
+       The top-level variables from the template.
     """
     variables: set[str] = set()
     section_depth = 0
@@ -131,12 +194,12 @@ def mustache_template_vars(
         if type_ == "end":
             section_depth -= 1
         elif (
-            type_ in ("variable", "section", "inverted section", "no escape")
+            type_ in {"variable", "section", "inverted section", "no escape"}
             and key != "."
             and section_depth == 0
         ):
             variables.add(key.split(".")[0])
-        if type_ in ("section", "inverted section"):
+        if type_ in {"section", "inverted section"}:
             section_depth += 1
     return variables
 
@@ -144,9 +207,7 @@ def mustache_template_vars(
 Defs = dict[str, "Defs"]
 
 
-def mustache_schema(
-    template: str,
-) -> type[BaseModel]:
+def mustache_schema(template: str) -> type[BaseModel]:
     """Get the variables from a mustache template.
 
     Args:
@@ -164,12 +225,17 @@ def mustache_schema(
         if type_ == "end":
             if section_stack:
                 prefix = section_stack.pop()
-        elif type_ in ("section", "inverted section"):
+        elif type_ in {"section", "inverted section"}:
             section_stack.append(prefix)
-            prefix = prefix + tuple(key.split("."))
+            prefix += tuple(key.split("."))
             fields[prefix] = False
-        elif type_ in ("variable", "no escape"):
+        elif type_ in {"variable", "no escape"}:
             fields[prefix + tuple(key.split("."))] = True
+
+    for fkey, fval in fields.items():
+        fields[fkey] = fval and not any(
+            is_subsequence(fkey, k) for k in fields if k != fkey
+        )
     defs: Defs = {}  # None means leaf node
     while fields:
         field, is_leaf = fields.popitem()
@@ -260,6 +326,30 @@ def get_template_variables(template: str, template_format: str) -> list[str]:
         msg = f"Unsupported template format: {template_format}"
         raise ValueError(msg)
 
+    # For f-strings, block attribute access and indexing syntax
+    # This prevents template injection attacks via accessing dangerous attributes
+    if template_format == "f-string":
+        for var in input_variables:
+            # Formatter().parse() returns field names with dots/brackets if present
+            # e.g., "obj.attr" or "obj[0]" - we need to block these
+            if "." in var or "[" in var or "]" in var:
+                msg = (
+                    f"Invalid variable name {var!r} in f-string template. "
+                    f"Variable names cannot contain attribute "
+                    f"access (.) or indexing ([])."
+                )
+                raise ValueError(msg)
+
+            # Block variable names that are all digits (e.g., "0", "100")
+            # These are interpreted as positional arguments, not keyword arguments
+            if var.isdigit():
+                msg = (
+                    f"Invalid variable name {var!r} in f-string template. "
+                    f"Variable names cannot be all digits as they are interpreted "
+                    f"as positional arguments."
+                )
+                raise ValueError(msg)
+
     return sorted(input_variables)
 
 
@@ -268,14 +358,18 @@ class StringPromptTemplate(BasePromptTemplate, ABC):
 
     @classmethod
     def get_lc_namespace(cls) -> list[str]:
-        """Get the namespace of the langchain object."""
+        """Get the namespace of the LangChain object.
+
+        Returns:
+            `["langchain", "prompts", "base"]`
+        """
         return ["langchain", "prompts", "base"]
 
     def format_prompt(self, **kwargs: Any) -> PromptValue:
         """Format the prompt with the inputs.
 
         Args:
-            kwargs: Any arguments to be passed to the prompt template.
+            **kwargs: Any arguments to be passed to the prompt template.
 
         Returns:
             A formatted string.
@@ -286,7 +380,7 @@ class StringPromptTemplate(BasePromptTemplate, ABC):
         """Async format the prompt with the inputs.
 
         Args:
-            kwargs: Any arguments to be passed to the prompt template.
+            **kwargs: Any arguments to be passed to the prompt template.
 
         Returns:
             A formatted string.
@@ -318,3 +412,12 @@ class StringPromptTemplate(BasePromptTemplate, ABC):
     def pretty_print(self) -> None:
         """Print a pretty representation of the prompt."""
         print(self.pretty_repr(html=is_interactive_env()))  # noqa: T201
+
+
+def is_subsequence(child: Sequence, parent: Sequence) -> bool:
+    """Return True if child is subsequence of parent."""
+    if len(child) == 0 or len(parent) == 0:
+        return False
+    if len(parent) < len(child):
+        return False
+    return all(child[i] == parent[i] for i in range(len(child)))

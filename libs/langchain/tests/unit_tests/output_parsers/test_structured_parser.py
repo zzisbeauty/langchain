@@ -2,7 +2,7 @@ from typing import Any
 
 from langchain_core.exceptions import OutputParserException
 
-from langchain.output_parsers import ResponseSchema, StructuredOutputParser
+from langchain_classic.output_parsers import ResponseSchema, StructuredOutputParser
 
 
 def test_parse() -> None:
@@ -26,7 +26,8 @@ def test_parse() -> None:
     except OutputParserException:
         pass  # Test passes if OutputParserException is raised
     else:
-        assert False, f"Expected OutputParserException, but got {parser.parse(text)}"
+        msg = f"Expected OutputParserException, but got {parser.parse(text)}"
+        raise AssertionError(msg)
 
 
 def test_output_type() -> None:

@@ -1,6 +1,5 @@
 import base64
 import re
-from typing import Union
 
 from langchain_core.messages import (
     AIMessage,
@@ -60,7 +59,7 @@ class PromptyChatParser(Invoker):
                     "and .jpg / .jpeg are supported."
                 )
 
-    def parse_content(self, content: str) -> Union[str, list]:
+    def parse_content(self, content: str) -> str | list:
         """for parsing inline images"""
         # regular expression to parse markdown images
         image = r"(?P<alt>!\[[^\]]*\])\((?P<filename>.*?)(?=\"|\))\)"
@@ -102,7 +101,8 @@ class PromptyChatParser(Invoker):
             return content
 
     def invoke(self, data: BaseModel) -> BaseModel:
-        assert isinstance(data, SimpleModel)
+        if not isinstance(data, SimpleModel):
+            raise ValueError("data must be an instance of SimpleModel")
         messages = []
         separator = r"(?i)^\s*#?\s*(" + "|".join(self.roles) + r")\s*:\s*\n"
 

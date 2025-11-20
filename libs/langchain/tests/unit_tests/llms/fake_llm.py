@@ -1,27 +1,27 @@
 """Fake LLM wrapper for testing purposes."""
 
 from collections.abc import Mapping
-from typing import Any, Optional, cast
+from typing import Any, cast
 
 from langchain_core.callbacks.manager import CallbackManagerForLLMRun
 from langchain_core.language_models.llms import LLM
 from pydantic import model_validator
+from typing_extensions import override
 
 
 class FakeLLM(LLM):
     """Fake LLM wrapper for testing purposes."""
 
-    queries: Optional[Mapping] = None
-    sequential_responses: Optional[bool] = False
+    queries: Mapping | None = None
+    sequential_responses: bool | None = False
     response_index: int = 0
 
     @model_validator(mode="before")
     @classmethod
     def check_queries_required(cls, values: dict) -> dict:
         if values.get("sequential_response") and not values.get("queries"):
-            raise ValueError(
-                "queries is required when sequential_response is set to True"
-            )
+            msg = "queries is required when sequential_response is set to True"
+            raise ValueError(msg)
         return values
 
     def get_num_tokens(self, text: str) -> int:
@@ -33,11 +33,12 @@ class FakeLLM(LLM):
         """Return type of llm."""
         return "fake"
 
+    @override
     def _call(
         self,
         prompt: str,
-        stop: Optional[list[str]] = None,
-        run_manager: Optional[CallbackManagerForLLMRun] = None,
+        stop: list[str] | None = None,
+        run_manager: CallbackManagerForLLMRun | None = None,
         **kwargs: Any,
     ) -> str:
         if self.sequential_responses:
@@ -46,8 +47,7 @@ class FakeLLM(LLM):
             return self.queries[prompt]
         if stop is None:
             return "foo"
-        else:
-            return "bar"
+        return "bar"
 
     @property
     def _identifying_params(self) -> dict[str, Any]:
@@ -55,7 +55,7 @@ class FakeLLM(LLM):
 
     @property
     def _get_next_response_in_sequence(self) -> str:
-        queries = cast(Mapping, self.queries)
+        queries = cast("Mapping", self.queries)
         response = queries[list(queries.keys())[self.response_index]]
         self.response_index = self.response_index + 1
         return response

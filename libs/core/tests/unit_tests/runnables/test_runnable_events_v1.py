@@ -26,7 +26,6 @@ from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
 from langchain_core.retrievers import BaseRetriever
 from langchain_core.runnables import (
     ConfigurableField,
-    Runnable,
     RunnableConfig,
     RunnableLambda,
 )
@@ -37,10 +36,10 @@ from tests.unit_tests.stubs import _any_id_ai_message, _any_id_ai_message_chunk
 
 
 def _with_nulled_run_id(events: Sequence[StreamEvent]) -> list[StreamEvent]:
-    """Removes the run ids from events."""
+    """Removes the run IDs from events."""
     for event in events:
-        assert "parent_ids" in event, "Parent ids should be present in the event."
-        assert event["parent_ids"] == [], "Parent ids should be empty."
+        assert "parent_ids" in event, "Parent IDs should be present in the event."
+        assert event["parent_ids"] == [], "Parent IDs should be empty."
 
     return cast("list[StreamEvent]", [{**event, "run_id": ""} for event in events])
 
@@ -63,7 +62,7 @@ async def _collect_events(events: AsyncIterator[StreamEvent]) -> list[StreamEven
 def _assert_events_equal_allow_superset_metadata(events: list, expected: list) -> None:
     """Assert that the events are equal."""
     assert len(events) == len(expected)
-    for i, (event, expected_event) in enumerate(zip(events, expected)):
+    for i, (event, expected_event) in enumerate(zip(events, expected, strict=False)):
         # we want to allow a superset of metadata on each
         event_with_edited_metadata = {
             k: (
@@ -504,7 +503,11 @@ async def test_astream_events_from_model() -> None:
                 "tags": ["my_model"],
             },
             {
-                "data": {"chunk": _any_id_ai_message_chunk(content="hello")},
+                "data": {
+                    "chunk": _any_id_ai_message_chunk(
+                        content="hello",
+                    )
+                },
                 "event": "on_chat_model_stream",
                 "metadata": {"a": "b"},
                 "name": "my_model",
@@ -522,7 +525,11 @@ async def test_astream_events_from_model() -> None:
                 "tags": ["my_model"],
             },
             {
-                "data": {"chunk": _any_id_ai_message_chunk(content="world!")},
+                "data": {
+                    "chunk": _any_id_ai_message_chunk(
+                        content="world!", chunk_position="last"
+                    )
+                },
                 "event": "on_chat_model_stream",
                 "metadata": {"a": "b"},
                 "name": "my_model",
@@ -531,7 +538,11 @@ async def test_astream_events_from_model() -> None:
                 "tags": ["my_model"],
             },
             {
-                "data": {"output": _any_id_ai_message_chunk(content="hello world!")},
+                "data": {
+                    "output": _any_id_ai_message_chunk(
+                        content="hello world!", chunk_position="last"
+                    )
+                },
                 "event": "on_chat_model_end",
                 "metadata": {"a": "b"},
                 "name": "my_model",
@@ -575,7 +586,11 @@ async def test_astream_events_from_model() -> None:
                 "tags": ["my_model"],
             },
             {
-                "data": {"chunk": _any_id_ai_message_chunk(content="hello")},
+                "data": {
+                    "chunk": _any_id_ai_message_chunk(
+                        content="hello",
+                    )
+                },
                 "event": "on_chat_model_stream",
                 "metadata": {
                     "a": "b",
@@ -601,7 +616,11 @@ async def test_astream_events_from_model() -> None:
                 "tags": ["my_model"],
             },
             {
-                "data": {"chunk": _any_id_ai_message_chunk(content="world!")},
+                "data": {
+                    "chunk": _any_id_ai_message_chunk(
+                        content="world!", chunk_position="last"
+                    )
+                },
                 "event": "on_chat_model_stream",
                 "metadata": {
                     "a": "b",
@@ -699,7 +718,11 @@ async def test_astream_events_from_model() -> None:
                 "tags": ["my_model"],
             },
             {
-                "data": {"chunk": _any_id_ai_message_chunk(content="hello")},
+                "data": {
+                    "chunk": _any_id_ai_message_chunk(
+                        content="hello",
+                    )
+                },
                 "event": "on_chat_model_stream",
                 "metadata": {
                     "a": "b",
@@ -725,7 +748,11 @@ async def test_astream_events_from_model() -> None:
                 "tags": ["my_model"],
             },
             {
-                "data": {"chunk": _any_id_ai_message_chunk(content="world!")},
+                "data": {
+                    "chunk": _any_id_ai_message_chunk(
+                        content="world!", chunk_position="last"
+                    )
+                },
                 "event": "on_chat_model_stream",
                 "metadata": {
                     "a": "b",
@@ -892,7 +919,12 @@ async def test_event_stream_with_simple_chain() -> None:
                 "tags": ["my_chain", "my_model", "seq:step:2"],
             },
             {
-                "data": {"chunk": AIMessageChunk(content="hello", id="ai1")},
+                "data": {
+                    "chunk": AIMessageChunk(
+                        content="hello",
+                        id="ai1",
+                    )
+                },
                 "event": "on_chat_model_stream",
                 "metadata": {
                     "a": "b",
@@ -906,7 +938,12 @@ async def test_event_stream_with_simple_chain() -> None:
                 "tags": ["my_chain", "my_model", "seq:step:2"],
             },
             {
-                "data": {"chunk": AIMessageChunk(content="hello", id="ai1")},
+                "data": {
+                    "chunk": AIMessageChunk(
+                        content="hello",
+                        id="ai1",
+                    )
+                },
                 "event": "on_chain_stream",
                 "metadata": {"foo": "bar"},
                 "name": "my_chain",
@@ -938,7 +975,11 @@ async def test_event_stream_with_simple_chain() -> None:
                 "tags": ["my_chain"],
             },
             {
-                "data": {"chunk": AIMessageChunk(content="world!", id="ai1")},
+                "data": {
+                    "chunk": AIMessageChunk(
+                        content="world!", id="ai1", chunk_position="last"
+                    )
+                },
                 "event": "on_chat_model_stream",
                 "metadata": {
                     "a": "b",
@@ -952,7 +993,11 @@ async def test_event_stream_with_simple_chain() -> None:
                 "tags": ["my_chain", "my_model", "seq:step:2"],
             },
             {
-                "data": {"chunk": AIMessageChunk(content="world!", id="ai1")},
+                "data": {
+                    "chunk": AIMessageChunk(
+                        content="world!", id="ai1", chunk_position="last"
+                    )
+                },
                 "event": "on_chain_stream",
                 "metadata": {"foo": "bar"},
                 "name": "my_chain",
@@ -976,7 +1021,9 @@ async def test_event_stream_with_simple_chain() -> None:
                                 {
                                     "generation_info": None,
                                     "message": AIMessageChunk(
-                                        content="hello world!", id="ai1"
+                                        content="hello world!",
+                                        id="ai1",
+                                        chunk_position="last",
                                     ),
                                     "text": "hello world!",
                                     "type": "ChatGenerationChunk",
@@ -1001,7 +1048,11 @@ async def test_event_stream_with_simple_chain() -> None:
                 "tags": ["my_chain", "my_model", "seq:step:2"],
             },
             {
-                "data": {"output": AIMessageChunk(content="hello world!", id="ai1")},
+                "data": {
+                    "output": AIMessageChunk(
+                        content="hello world!", id="ai1", chunk_position="last"
+                    )
+                },
                 "event": "on_chain_end",
                 "metadata": {"foo": "bar"},
                 "name": "my_chain",
@@ -1852,7 +1903,12 @@ async def test_events_astream_config() -> None:
                 "tags": [],
             },
             {
-                "data": {"chunk": AIMessageChunk(content="Goodbye", id="ai2")},
+                "data": {
+                    "chunk": AIMessageChunk(
+                        content="Goodbye",
+                        id="ai2",
+                    )
+                },
                 "event": "on_chat_model_stream",
                 "metadata": {},
                 "name": "RunnableConfigurableFields",
@@ -1870,7 +1926,11 @@ async def test_events_astream_config() -> None:
                 "tags": [],
             },
             {
-                "data": {"chunk": AIMessageChunk(content="world", id="ai2")},
+                "data": {
+                    "chunk": AIMessageChunk(
+                        content="world", id="ai2", chunk_position="last"
+                    )
+                },
                 "event": "on_chat_model_stream",
                 "metadata": {},
                 "name": "RunnableConfigurableFields",
@@ -1879,7 +1939,11 @@ async def test_events_astream_config() -> None:
                 "tags": [],
             },
             {
-                "data": {"output": AIMessageChunk(content="Goodbye world", id="ai2")},
+                "data": {
+                    "output": AIMessageChunk(
+                        content="Goodbye world", id="ai2", chunk_position="last"
+                    )
+                },
                 "event": "on_chat_model_end",
                 "metadata": {},
                 "name": "RunnableConfigurableFields",
@@ -1935,7 +1999,7 @@ async def test_runnable_with_message_history() -> None:
     )
     model = GenericFakeChatModel(messages=infinite_cycle)
 
-    chain: Runnable = prompt | model
+    chain = prompt | model
     with_message_history = RunnableWithMessageHistory(
         chain,
         get_session_history=get_by_session_id,
