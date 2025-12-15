@@ -10,12 +10,9 @@ from json.decoder import JSONDecodeError
 
 
 def clean_json_tags(text: str) -> str:
-    """
-    清理文本中的JSON标签
-    
+    """ 清理文本中的JSON标签
     Args:
         text: 原始文本
-        
     Returns:
         清理后的文本
     """
@@ -28,12 +25,9 @@ def clean_json_tags(text: str) -> str:
 
 
 def clean_markdown_tags(text: str) -> str:
-    """
-    清理文本中的Markdown标签
-    
+    """ 清理文本中的Markdown标签
     Args:
         text: 原始文本
-        
     Returns:
         清理后的文本
     """
@@ -41,17 +35,13 @@ def clean_markdown_tags(text: str) -> str:
     text = re.sub(r'```markdown\s*', '', text)
     text = re.sub(r'```\s*$', '', text)
     text = re.sub(r'```', '', text)
-    
     return text.strip()
 
 
 def remove_reasoning_from_output(text: str) -> str:
-    """
-    移除输出中的推理过程文本
-    
+    """ 移除输出中的推理过程文本
     Args:
         text: 原始文本
-        
     Returns:
         清理后的文本
     """
@@ -83,12 +73,9 @@ def remove_reasoning_from_output(text: str) -> str:
 
 
 def extract_clean_response(text: str) -> Dict[str, Any]:
-    """
-    提取并清理响应中的JSON内容
-    
+    """ 提取并清理响应中的JSON内容
     Args:
         text: 原始响应文本
-        
     Returns:
         解析后的JSON字典
     """
@@ -134,12 +121,9 @@ def extract_clean_response(text: str) -> Dict[str, Any]:
 
 
 def fix_incomplete_json(text: str) -> str:
-    """
-    修复不完整的JSON响应
-    
+    """ 修复不完整的JSON响应
     Args:
         text: 原始文本
-        
     Returns:
         修复后的JSON文本，如果无法修复则返回空字符串
     """

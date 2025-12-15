@@ -3,13 +3,14 @@ Configuration management module for the Insight Engine.
 Handles environment variables and config file parameters.
 """
 
-
 import os
 from dataclasses import dataclass
 from typing import Optional
 from pydantic_settings import BaseSettings
 from pydantic import Field
 from loguru import logger
+
+
 
 class Settings(BaseSettings):
     INSIGHT_ENGINE_API_KEY: Optional[str] = Field(None, description="Insight Engine LLM API密钥")
@@ -37,10 +38,14 @@ class Settings(BaseSettings):
     OUTPUT_DIR: str = Field("reports", description="输出路径")
     SAVE_INTERMEDIATE_STATES: bool = Field(True, description="是否保存中间状态")
 
+    KEYWORD_OPTIMIZER_API_KEY: str = "local-vllm"  # 优化检索词的 model server api
+
     class Config:
         env_file = ".env"
         env_prefix = ""
         case_sensitive = False
         extra = "allow"
+
+
 
 settings = Settings()
